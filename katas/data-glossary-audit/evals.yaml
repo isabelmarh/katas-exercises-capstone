@@ -6,7 +6,7 @@ cases:
       description: "Should be stated in singular form"
       criterion: "singular"
     evaluators:
-      - SingularFormEvaluator
+      - EqualsExpected
 
   - name: positive_definition
     inputs: "A user account is not a guest session"
@@ -15,7 +15,7 @@ cases:
       description: "Should state what concept is, not what it is not"
       criterion: "positive_definition"
     evaluators:
-      - PositiveDefinitionEvaluator
+      - EqualsExpected
 
   - name: descriptive_phrase
     inputs: "Revenue"
@@ -24,7 +24,7 @@ cases:
       description: "Should be descriptive phrase or sentence"
       criterion: "descriptive"
     evaluators:
-      - DescriptivePhraseEvaluator
+      - EqualsExpected
 
   - name: common_abbreviations
     inputs: "An API that uses HTTP/2 protocol via TCP/IP"
@@ -33,7 +33,7 @@ cases:
       description: "Should contain only commonly understood abbreviations"
       criterion: "abbreviations"
     evaluators:
-      - CommonAbbreviationsEvaluator
+      - EqualsExpected
 
   - name: no_embedded_definitions
     inputs: "A customer record (which is a structured data entry containing personal information) that tracks purchases"
@@ -42,7 +42,7 @@ cases:
       description: "Should not embed definitions of other concepts"
       criterion: "no_embedded_definitions"
     evaluators:
-      - NoEmbeddedDefinitionsEvaluator
+      - EqualsExpected
 
   - name: essential_meaning
     inputs: "A user account is a digital identity used for authentication and authorization"
@@ -51,7 +51,7 @@ cases:
       description: "Should state essential meaning of concept"
       criterion: "essential_meaning"
     evaluators:
-      - EssentialMeaningEvaluator
+      - EqualsExpected
 
   - name: precise_unambiguous
     inputs: "A thing that holds stuff"
@@ -60,7 +60,7 @@ cases:
       description: "Should be precise and unambiguous"
       criterion: "precision"
     evaluators:
-      - PrecisionEvaluator
+      - EqualsExpected
 
   - name: concise
     inputs: "A customer record is a comprehensive digital repository that extensively documents and maintains detailed information about individual customers including but not limited to their personal details, contact information, purchase history, preferences, and various other data points"
@@ -69,7 +69,7 @@ cases:
       description: "Should be concise"
       criterion: "conciseness"
     evaluators:
-      - ConcisenessEvaluator
+      - EqualsExpected
 
   - name: standalone
     inputs: "A payment method as described above"
@@ -78,7 +78,7 @@ cases:
       description: "Should be able to stand alone"
       criterion: "standalone"
     evaluators:
-      - StandaloneEvaluator
+      - EqualsExpected
 
   - name: no_procedural_info
     inputs: "A user account created by filling out the registration form and clicking submit"
@@ -87,7 +87,7 @@ cases:
       description: "Should not embed procedural information"
       criterion: "no_procedural"
     evaluators:
-      - NoProceduralInfoEvaluator
+      - EqualsExpected
 
   - name: no_circular_reasoning
     inputs: "A customer is someone who is a customer of our business"
@@ -96,7 +96,7 @@ cases:
       description: "Should avoid circular reasoning"
       criterion: "no_circular"
     evaluators:
-      - NoCircularReasoningEvaluator
+      - EqualsExpected
 
   - name: consistent_terminology
     inputs: 
@@ -107,7 +107,7 @@ cases:
       description: "Should use consistent terminology for related definitions"
       criterion: "consistency"
     evaluators:
-      - ConsistentTerminologyEvaluator
+      - EqualsExpected
 
   - name: appropriate_type
     inputs: "Revenue: $1,234,567"
@@ -116,4 +116,4 @@ cases:
       description: "Should be appropriate definition type, not example value"
       criterion: "appropriate_type"
     evaluators:
-      - AppropriateTypeEvaluator
+      - EqualsExpected
