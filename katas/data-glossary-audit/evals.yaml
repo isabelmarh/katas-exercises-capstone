@@ -1,0 +1,119 @@
+cases:
+  - name: singular_form
+    inputs: "Customer data records information"
+    expected_output: "fail"
+    metadata:
+      description: "Should be stated in singular form"
+      criterion: "singular"
+    evaluators:
+      - SingularFormEvaluator
+
+  - name: positive_definition
+    inputs: "A user account is not a guest session"
+    expected_output: "fail"
+    metadata:
+      description: "Should state what concept is, not what it is not"
+      criterion: "positive_definition"
+    evaluators:
+      - PositiveDefinitionEvaluator
+
+  - name: descriptive_phrase
+    inputs: "Revenue"
+    expected_output: "fail"
+    metadata:
+      description: "Should be descriptive phrase or sentence"
+      criterion: "descriptive"
+    evaluators:
+      - DescriptivePhraseEvaluator
+
+  - name: common_abbreviations
+    inputs: "An API that uses HTTP/2 protocol via TCP/IP"
+    expected_output: "pass"
+    metadata:
+      description: "Should contain only commonly understood abbreviations"
+      criterion: "abbreviations"
+    evaluators:
+      - CommonAbbreviationsEvaluator
+
+  - name: no_embedded_definitions
+    inputs: "A customer record (which is a structured data entry containing personal information) that tracks purchases"
+    expected_output: "fail"
+    metadata:
+      description: "Should not embed definitions of other concepts"
+      criterion: "no_embedded_definitions"
+    evaluators:
+      - NoEmbeddedDefinitionsEvaluator
+
+  - name: essential_meaning
+    inputs: "A user account is a digital identity used for authentication and authorization"
+    expected_output: "pass"
+    metadata:
+      description: "Should state essential meaning of concept"
+      criterion: "essential_meaning"
+    evaluators:
+      - EssentialMeaningEvaluator
+
+  - name: precise_unambiguous
+    inputs: "A thing that holds stuff"
+    expected_output: "fail"
+    metadata:
+      description: "Should be precise and unambiguous"
+      criterion: "precision"
+    evaluators:
+      - PrecisionEvaluator
+
+  - name: concise
+    inputs: "A customer record is a comprehensive digital repository that extensively documents and maintains detailed information about individual customers including but not limited to their personal details, contact information, purchase history, preferences, and various other data points"
+    expected_output: "fail"
+    metadata:
+      description: "Should be concise"
+      criterion: "conciseness"
+    evaluators:
+      - ConcisenessEvaluator
+
+  - name: standalone
+    inputs: "A payment method as described above"
+    expected_output: "fail"
+    metadata:
+      description: "Should be able to stand alone"
+      criterion: "standalone"
+    evaluators:
+      - StandaloneEvaluator
+
+  - name: no_procedural_info
+    inputs: "A user account created by filling out the registration form and clicking submit"
+    expected_output: "fail"
+    metadata:
+      description: "Should not embed procedural information"
+      criterion: "no_procedural"
+    evaluators:
+      - NoProceduralInfoEvaluator
+
+  - name: no_circular_reasoning
+    inputs: "A customer is someone who is a customer of our business"
+    expected_output: "fail"
+    metadata:
+      description: "Should avoid circular reasoning"
+      criterion: "no_circular"
+    evaluators:
+      - NoCircularReasoningEvaluator
+
+  - name: consistent_terminology
+    inputs: 
+      - "A user account is a digital identity for system access"
+      - "A customer profile is a digital identity for system access"
+    expected_output: "pass"
+    metadata:
+      description: "Should use consistent terminology for related definitions"
+      criterion: "consistency"
+    evaluators:
+      - ConsistentTerminologyEvaluator
+
+  - name: appropriate_type
+    inputs: "Revenue: $1,234,567"
+    expected_output: "fail"
+    metadata:
+      description: "Should be appropriate definition type, not example value"
+      criterion: "appropriate_type"
+    evaluators:
+      - AppropriateTypeEvaluator
