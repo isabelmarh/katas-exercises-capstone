@@ -46,12 +46,14 @@ def load_agent_function_from_file(agent_file: Path):
     import importlib.util
     import sys
 
-    spec = importlib.util.spec_from_file_location("agent_module", agent_file)
+    spec = importlib.util.spec_from_file_location(
+        f"{agent_file.stem}_{hash(agent_file)}", agent_file
+    )
     if spec is None or spec.loader is None:
         raise ValueError(f"Could not load agent from {agent_file}")
 
     module = importlib.util.module_from_spec(spec)
-    sys.modules["agent_module"] = module
+    sys.modules[f"{agent_file.stem}_{hash(agent_file)}"] = module
     spec.loader.exec_module(module)
 
     if hasattr(module, "agent"):
@@ -93,9 +95,6 @@ def list_katas() -> None:
 @app.command()
 def run(
     kata_name: str | None = typer.Argument(None, help="Name of the kata to run"),
-    output_file: Path | None = typer.Option(
-        None, "--output", "-o", help="Save results to file"
-    ),
 ) -> None:
     """Run evaluations for a specific kata."""
     katas = discover_katas()
@@ -138,17 +137,20 @@ def run(
     agent_function = load_agent_function_from_file(kata.agent_file)
 
     console.print(f"[blue]Running {len(dataset.cases)} evaluations...[/blue]")
-    report = dataset.evaluate_sync(agent_function)
+
+    def run_agent(inputs):
+        import asyncio
+
+        # Run async functions in an event loop for the sync evaluator
+        if asyncio.iscoroutinefunction(agent_function):
+            return asyncio.run(agent_function(inputs))
+        return agent_function(inputs)
+
+    report = dataset.evaluate_sync(run_agent)
 
     console.print("[green]Evaluation complete![/green]")
     # Print the report
     report.print(include_input=True, include_output=True)
-
-    if output_file:
-        # Save results to file (pydantic-evals doesn't have a save method on reports)
-        console.print(
-            f"[blue]Results printed above - manual save to {output_file} not implemented yet[/blue]"
-        )
 
 
 if __name__ == "__main__":
