@@ -64,6 +64,8 @@ cases:
           description: Data is updated daily
           type: batch
           interval: daily
+    evaluators:
+      - EqualsExpected
 
   - name: sql-ddl-schema
     inputs: |
@@ -140,6 +142,8 @@ cases:
         frequency:
           description: Updated in real-time via CDC from production database
           type: streaming
+    evaluators:
+      - EqualsExpected
 
   - name: simple-csv-headers
     inputs: |
@@ -180,3 +184,5 @@ cases:
             country:
               type: text
               description: User country
+    evaluators:
+      - EqualsExpected

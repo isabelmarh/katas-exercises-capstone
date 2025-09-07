@@ -99,7 +99,7 @@ cases:
       - EqualsExpected
 
   - name: consistent_terminology
-    inputs: 
+    inputs:
       - "A user account is a digital identity for system access"
       - "A customer profile is a digital identity for system access"
     expected_output: "pass"
