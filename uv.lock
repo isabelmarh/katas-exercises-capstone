@@ -6,7 +6,7 @@ requires-python = ">=3.13"
 members = [
     "ai-agent-katas",
     "data-glossary-audit",
-    "datacontract-from-word",
+    "datacontract",
     "dumb-example",
     "punctuation",
 ]
@@ -281,9 +281,9 @@ version = "0.1.0"
 source = { virtual = "katas/data-glossary-audit" }
 
 [[package]]
-name = "datacontract-from-word"
+name = "datacontract"
 version = "0.1.0"
-source = { virtual = "katas/datacontract-from-word" }
+source = { virtual = "katas/datacontract" }
 
 [[package]]
 name = "distro"

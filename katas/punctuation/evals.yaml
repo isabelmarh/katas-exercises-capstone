@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../evals-schema.json
 cases:
   - name: simple_sentence
     inputs: "hello world how are you today"

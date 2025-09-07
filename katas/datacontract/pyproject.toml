@@ -1,5 +1,5 @@
 [project]
-name = "datacontract-from-word"
+name = "datacontract"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"

@@ -19,7 +19,7 @@ katas = "src.cli:app"
 members = [
     "katas/data-glossary-audit",
     "katas/dumb-example",
-    "katas/datacontract-from-word",
+    "katas/datacontract",
     "katas/punctuation",
 ]
 

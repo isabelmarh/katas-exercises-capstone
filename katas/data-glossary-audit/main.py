@@ -27,7 +27,7 @@ def main(inputs: str) -> str:
         "pass" if the definition meets quality standards, "fail" otherwise
     """
     # TODO: Implement data glossary quality evaluation agent
-    return "skip"
+    raise NotImplementedError("Data glossary quality evaluation agent not implemented")
 
 
 if __name__ == "__main__":
