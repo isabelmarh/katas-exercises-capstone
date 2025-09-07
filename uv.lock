@@ -6,6 +6,9 @@ requires-python = ">=3.13"
 members = [
     "ai-agent-katas",
     "data-glossary-audit",
+    "datacontract-from-word",
+    "dumb-example",
+    "punctuation",
 ]
 
 [[package]]
@@ -278,6 +281,11 @@ version = "0.1.0"
 source = { virtual = "katas/data-glossary-audit" }
 
 [[package]]
+name = "datacontract-from-word"
+version = "0.1.0"
+source = { virtual = "katas/datacontract-from-word" }
+
+[[package]]
 name = "distro"
 version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -285,6 +293,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527
 wheels = [
     { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277 },
 ]
+
+[[package]]
+name = "dumb-example"
+version = "0.1.0"
+source = { virtual = "katas/dumb-example" }
 
 [[package]]
 name = "eval-type-backport"
@@ -1024,6 +1037,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/85/e4/07c80521879c2d15f321465ac24c70efe2381378c00bf5e56a0f4fbac8cd/protobuf-5.29.5-cp38-abi3-manylinux2014_x86_64.whl", hash = "sha256:63848923da3325e1bf7e9003d680ce6e14b07e55d0473253a690c3a8b8fd6e61", size = 319942 },
     { url = "https://files.pythonhosted.org/packages/7e/cc/7e77861000a0691aeea8f4566e5d3aa716f2b1dece4a24439437e41d3d25/protobuf-5.29.5-py3-none-any.whl", hash = "sha256:6cf42630262c59b2d8de33954443d94b746c952b01434fc58a417fdbd2e84bd5", size = 172823 },
 ]
+
+[[package]]
+name = "punctuation"
+version = "0.1.0"
+source = { virtual = "katas/punctuation" }
 
 [[package]]
 name = "pyasn1"

@@ -46,36 +46,38 @@ def load_agent_function_from_file(agent_file: Path):
     import importlib.util
     import sys
 
-    spec = importlib.util.spec_from_file_location(
-        f"{agent_file.stem}_{hash(agent_file)}", agent_file
-    )
+    mod_name = f"{agent_file.stem}_{hash((agent_file, agent_file.stat().st_mtime_ns))}"
+    spec = importlib.util.spec_from_file_location(mod_name, agent_file)
     if spec is None or spec.loader is None:
         raise ValueError(f"Could not load agent from {agent_file}")
 
     module = importlib.util.module_from_spec(spec)
-    sys.modules[f"{agent_file.stem}_{hash(agent_file)}"] = module
+    sys.modules[mod_name] = module
     spec.loader.exec_module(module)
 
+    # Preferred: a PydanticAI Agent object named `agent`
     if hasattr(module, "agent"):
-        # If it's a pydantic-ai Agent, we need to wrap it in a function
         agent = module.agent
 
-        async def agent_function(inputs):
-            result = await agent.run(inputs)
-            return result.output
+        def agent_function(inputs: str) -> str:
+            # sync all the way: avoids per-case event loop churn
+            res = agent.run_sync(inputs)
+            return res.output
 
         return agent_function
-    elif hasattr(module, "main"):
-        return module.main
-    else:
-        raise ValueError(f"No agent or main function found in {agent_file}")
+
+    # Fallback: a plain sync callable `main(inputs) -> str`
+    if hasattr(module, "main"):
+        main_fn = module.main
+        if callable(main_fn):
+            return main_fn
+
+    raise ValueError(f"No agent or main function found in {agent_file}")
 
 
 @app.command()
 def list_katas() -> None:
-    """List all available katas."""
     katas = discover_katas()
-
     if not katas:
         console.print("[red]No katas found![/red]")
         return
@@ -96,15 +98,12 @@ def list_katas() -> None:
 def run(
     kata_name: str | None = typer.Argument(None, help="Name of the kata to run"),
 ) -> None:
-    """Run evaluations for a specific kata."""
     katas = discover_katas()
-
     if not katas:
         console.print("[red]No katas found![/red]")
         raise typer.Exit(1)
 
     if kata_name is None:
-        # Show selection interface
         console.print("[blue]Available katas:[/blue]")
         for i, kata in enumerate(katas, 1):
             has_evals = "✓" if kata.evals_file.stat().st_size > 0 else "✗"
@@ -113,8 +112,6 @@ def run(
         choice = typer.prompt("Select kata number")
         try:
             selected_index = int(choice) - 1
-            if selected_index < 0 or selected_index >= len(katas):
-                raise ValueError()
             kata = katas[selected_index]
         except (ValueError, IndexError):
             console.print("[red]Invalid selection![/red]")
@@ -130,7 +127,6 @@ def run(
         raise typer.Exit(1)
 
     console.print(f"[blue]Loading evals for {kata.name}...[/blue]")
-    # Load dataset from file using pydantic-evals
     dataset = Dataset.from_file(kata.evals_file)
 
     console.print(f"[blue]Loading agent from {kata.agent_file}...[/blue]")
@@ -138,18 +134,13 @@ def run(
 
     console.print(f"[blue]Running {len(dataset.cases)} evaluations...[/blue]")
 
-    def run_agent(inputs):
-        import asyncio
-
-        # Run async functions in an event loop for the sync evaluator
-        if asyncio.iscoroutinefunction(agent_function):
-            return asyncio.run(agent_function(inputs))
+    def run_agent(inputs: str) -> str:
+        # Synchronous path only; agent_function already uses run_sync when needed
         return agent_function(inputs)
 
     report = dataset.evaluate_sync(run_agent)
 
     console.print("[green]Evaluation complete![/green]")
-    # Print the report
     report.print(include_input=True, include_output=True)
 
 
