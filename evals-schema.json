@@ -1,84 +1,61 @@
 {
-  "$defs": {
-    "Case_TypeVar_TypeVar_TypeVar_": {
-      "properties": {
-        "name": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Name"
-        },
-        "inputs": {
-          "title": "Inputs"
-        },
-        "metadata": {
-          "anyOf": [
-            {},
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Metadata"
-        },
-        "expected_output": {
-          "anyOf": [
-            {},
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expected Output"
-        },
-        "evaluators": {
-          "items": {
-            "$ref": "#/$defs/Evaluator_TypeVar_TypeVar_TypeVar_"
-          },
-          "title": "Evaluators",
-          "type": "array"
-        }
-      },
-      "required": [
-        "name",
-        "inputs"
-      ],
-      "title": "Case",
-      "type": "object"
-    },
-    "Evaluator_TypeVar_TypeVar_TypeVar_": {
-      "properties": {},
-      "title": "Evaluator",
-      "type": "object"
-    }
-  },
-  "additionalProperties": false,
-  "description": "A dataset of test [cases][pydantic_evals.Case].\n\nDatasets allow you to organize a collection of test cases and evaluate them against a task function.\nThey can be loaded from and saved to YAML or JSON files, and can have dataset-level evaluators that\napply to all cases.\n\nExample:\n```python\n# Create a dataset with two test cases\nfrom dataclasses import dataclass\n\nfrom pydantic_evals import Case, Dataset\nfrom pydantic_evals.evaluators import Evaluator, EvaluatorContext\n\n\n@dataclass\nclass ExactMatch(Evaluator):\n    def evaluate(self, ctx: EvaluatorContext) -> bool:\n        return ctx.output == ctx.expected_output\n\ndataset = Dataset(\n    cases=[\n        Case(name='test1', inputs={'text': 'Hello'}, expected_output='HELLO'),\n        Case(name='test2', inputs={'text': 'World'}, expected_output='WORLD'),\n    ],\n    evaluators=[ExactMatch()],\n)\n\n# Evaluate the dataset against a task function\nasync def uppercase(inputs: dict) -> str:\n    return inputs['text'].upper()\n\nasync def main():\n    report = await dataset.evaluate(uppercase)\n    report.print()\n'''\n   Evaluation Summary: uppercase\n\u250f\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2533\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2533\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2513\n\u2503 Case ID  \u2503 Assertions \u2503 Duration \u2503\n\u2521\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2547\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2547\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2529\n\u2502 test1    \u2502 \u2714          \u2502     10ms \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 test2    \u2502 \u2714          \u2502     10ms \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 Averages \u2502 100.0% \u2714   \u2502     10ms \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n'''\n```",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
   "properties": {
     "cases": {
+      "type": "array",
       "items": {
-        "$ref": "#/$defs/Case_TypeVar_TypeVar_TypeVar_"
-      },
-      "title": "Cases",
-      "type": "array"
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "string"
+          },
+          "expected_output": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "evaluators": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "EqualsExpected",
+                "Contains",
+                "IsInstance",
+                "LLMJudge"
+              ]
+            }
+          }
+        },
+        "required": [
+          "name",
+          "inputs"
+        ],
+        "additionalProperties": false
+      }
     },
     "evaluators": {
-      "default": [],
+      "type": "array",
       "items": {
-        "$ref": "#/$defs/Evaluator_TypeVar_TypeVar_TypeVar_"
+        "type": "string",
+        "enum": [
+          "EqualsExpected",
+          "Contains",
+          "IsInstance",
+          "LLMJudge"
+        ]
       },
-      "title": "Evaluators",
-      "type": "array"
+      "default": []
     }
   },
   "required": [
     "cases"
   ],
-  "title": "Dataset",
-  "type": "object"
+  "additionalProperties": false
 }
