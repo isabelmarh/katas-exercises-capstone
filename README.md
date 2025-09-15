@@ -73,14 +73,14 @@ katas/<kata-name>/
 
 ### Creating Your Agent
 
-Here uis an example of a simple agent that uses the PydanticAI Agent:
+Here is an example of a simple agent that uses the PydanticAI Agent:
 
 ```python
 from pydantic_ai import Agent
 
 agent = Agent(
-    model='google-gla:gemini-2.5-pro'
-    system_prompt='Your system prompt here'
+    model='google-gla:gemini-2.5-pro',
+    instructions='Your insructions here',
 )
 ```
 
