@@ -1,0 +1,8 @@
+[project]
+name = "code-review-bot"
+version = "0.1.0"
+description = "Code review bot kata for AI agent practice"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic-evals>=1.0.1",
+]

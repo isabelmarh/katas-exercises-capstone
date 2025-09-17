@@ -5,6 +5,8 @@ requires-python = ">=3.13"
 [manifest]
 members = [
     "ai-agent-katas",
+    "code-review-bot",
+    "commit-message-generator",
     "data-glossary-audit",
     "datacontract",
     "dumb-example",
@@ -247,6 +249,17 @@ wheels = [
 ]
 
 [[package]]
+name = "code-review-bot"
+version = "0.1.0"
+source = { virtual = "katas/code-review-bot" }
+dependencies = [
+    { name = "pydantic-evals" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pydantic-evals", specifier = ">=1.0.1" }]
+
+[[package]]
 name = "cohere"
 version = "5.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -274,6 +287,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335 },
 ]
+
+[[package]]
+name = "commit-message-generator"
+version = "0.1.0"
+source = { virtual = "katas/commit-message-generator" }
+dependencies = [
+    { name = "pydantic-evals" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pydantic-evals", specifier = ">=1.0.1" }]
 
 [[package]]
 name = "data-glossary-audit"

@@ -1,0 +1,8 @@
+[project]
+name = "commit-message-generator"
+version = "0.1.0"
+description = "Commit message generator kata for AI agent practice"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic-evals>=1.0.1",
+]
