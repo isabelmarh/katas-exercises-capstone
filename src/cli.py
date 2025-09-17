@@ -55,6 +55,13 @@ def load_agent_function_from_file(agent_file: Path):
     sys.modules[mod_name] = module
     spec.loader.exec_module(module)
 
+    # Check for inline evaluations (dataset ending with _dataset)
+    dataset_attrs = [attr for attr in dir(module) if attr.endswith('_dataset')]
+    if dataset_attrs and hasattr(module, 'main'):
+        dataset = getattr(module, dataset_attrs[0])
+        main_fn = module.main
+        return (dataset, main_fn), True  # True indicates inline evals
+
     # Preferred: a PydanticAI Agent object named `agent`
     if hasattr(module, "agent"):
         agent = module.agent
@@ -64,15 +71,15 @@ def load_agent_function_from_file(agent_file: Path):
             res = agent.run_sync(inputs)
             return res.output
 
-        return agent_function
+        return agent_function, False
 
     # Fallback: a plain sync callable `main(inputs) -> str`
     if hasattr(module, "main"):
         main_fn = module.main
         if callable(main_fn):
-            return main_fn
+            return main_fn, False
 
-    raise ValueError(f"No agent or main function found in {agent_file}")
+    raise ValueError(f"No agent, main function, or dataset found in {agent_file}")
 
 
 @app.command()
@@ -122,6 +129,17 @@ def run(
             console.print(f"[red]Kata '{kata_name}' not found![/red]")
             raise typer.Exit(1)
 
+    console.print(f"[blue]Loading agent from {kata.agent_file}...[/blue]")
+    agent_function_or_runner, has_inline_evals = load_agent_function_from_file(kata.agent_file)
+
+    if has_inline_evals:
+        console.print(f"[blue]Running inline evaluations for {kata.name}...[/blue]")
+        dataset, main_fn = agent_function_or_runner
+        report = dataset.evaluate_sync(main_fn)
+        console.print("[green]Evaluation complete![/green]")
+        report.print(include_input=True, include_output=True)
+        return
+
     if kata.evals_file.stat().st_size == 0:
         console.print(f"[red]Evals file for '{kata.name}' is empty![/red]")
         raise typer.Exit(1)
@@ -129,14 +147,11 @@ def run(
     console.print(f"[blue]Loading evals for {kata.name}...[/blue]")
     dataset = Dataset.from_file(kata.evals_file)
 
-    console.print(f"[blue]Loading agent from {kata.agent_file}...[/blue]")
-    agent_function = load_agent_function_from_file(kata.agent_file)
-
     console.print(f"[blue]Running {len(dataset.cases)} evaluations...[/blue]")
 
     def run_agent(inputs: str) -> str:
         # Synchronous path only; agent_function already uses run_sync when needed
-        return agent_function(inputs)
+        return agent_function_or_runner(inputs)
 
     report = dataset.evaluate_sync(run_agent)
 
