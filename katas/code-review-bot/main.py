@@ -164,4 +164,4 @@ code_review_dataset = Dataset[str, str, Any](
 
 if __name__ == "__main__":
     report = code_review_dataset.evaluate_sync(main)
-    print(report)
+    report.print()

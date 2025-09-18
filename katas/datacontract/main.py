@@ -241,4 +241,4 @@ models:
 
 if __name__ == "__main__":
     report = datacontract_dataset.evaluate_sync(main)
-    print(report)
+    report.print()

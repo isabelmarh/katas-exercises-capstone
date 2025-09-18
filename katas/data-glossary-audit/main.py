@@ -163,4 +163,4 @@ data_glossary_audit_dataset = Dataset[str, str, Any](
 
 if __name__ == "__main__":
     report = data_glossary_audit_dataset.evaluate_sync(main)
-    print(report)
+    report.print()

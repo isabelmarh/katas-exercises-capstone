@@ -117,4 +117,4 @@ commit_message_dataset = Dataset[str, str, Any](
 
 if __name__ == "__main__":
     report = commit_message_dataset.evaluate_sync(main)
-    print(report)
+    report.print()
