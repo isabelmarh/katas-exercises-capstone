@@ -13,7 +13,6 @@ console = Console()
 class KataConfig(BaseModel):
     name: str
     path: Path
-    evals_file: Path
     agent_file: Path
 
 
@@ -26,15 +25,13 @@ def discover_katas(workspace_path: Path = Path("katas")) -> list[KataConfig]:
         if not kata_dir.is_dir():
             continue
 
-        evals_file = kata_dir / "evals.yaml"
         agent_file = kata_dir / "main.py"
 
-        if evals_file.exists() and agent_file.exists():
+        if agent_file.exists():
             katas.append(
                 KataConfig(
                     name=kata_dir.name,
                     path=kata_dir,
-                    evals_file=evals_file,
                     agent_file=agent_file,
                 )
             )
@@ -56,8 +53,8 @@ def load_agent_function_from_file(agent_file: Path):
     spec.loader.exec_module(module)
 
     # Check for inline evaluations (dataset ending with _dataset)
-    dataset_attrs = [attr for attr in dir(module) if attr.endswith('_dataset')]
-    if dataset_attrs and hasattr(module, 'main'):
+    dataset_attrs = [attr for attr in dir(module) if attr.endswith("_dataset")]
+    if dataset_attrs and hasattr(module, "main"):
         dataset = getattr(module, dataset_attrs[0])
         main_fn = module.main
         return (dataset, main_fn), True  # True indicates inline evals
@@ -95,7 +92,7 @@ def list_katas() -> None:
     table.add_column("Has Evals", style="green")
 
     for kata in katas:
-        has_evals = "✓" if kata.evals_file.stat().st_size > 0 else "✗"
+        has_evals = "✓"  # if kata.evals_file.stat().st_size > 0 else "✗"
         table.add_row(kata.name, str(kata.path), has_evals)
 
     console.print(table)
@@ -113,7 +110,7 @@ def run(
     if kata_name is None:
         console.print("[blue]Available katas:[/blue]")
         for i, kata in enumerate(katas, 1):
-            has_evals = "✓" if kata.evals_file.stat().st_size > 0 else "✗"
+            has_evals = "✓"  # if kata.evals_file.stat().st_size > 0 else "✗"
             console.print(f"  {i}. {kata.name} {has_evals}")
 
         choice = typer.prompt("Select kata number")
@@ -130,7 +127,9 @@ def run(
             raise typer.Exit(1)
 
     console.print(f"[blue]Loading agent from {kata.agent_file}...[/blue]")
-    agent_function_or_runner, has_inline_evals = load_agent_function_from_file(kata.agent_file)
+    agent_function_or_runner, has_inline_evals = load_agent_function_from_file(
+        kata.agent_file
+    )
 
     if has_inline_evals:
         console.print(f"[blue]Running inline evaluations for {kata.name}...[/blue]")
