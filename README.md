@@ -67,6 +67,17 @@ katas run <kata-name>
 katas run
 ```
 
+### Checking Setup
+
+Once the setup has been completed you can check your setup by running the `hello-agent` kata. To do this simply execute the following in a virtual environment:
+
+```bash
+# If not already done activate virtual environment
+source .venv/bin/activate
+
+katas run hello-agent
+```
+
 ## 🏗️ Kata Structure
 
 Each kata follows a consistent structure:
