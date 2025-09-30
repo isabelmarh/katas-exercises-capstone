@@ -40,6 +40,14 @@ export GEMINI_API_KEY=$(op read "op://Private/GEMINI_API_KEY/credential")
 echo 'export GEMINI_API_KEY=$(op read "op://Private/GEMINI_API_KEY/credential")' >> ~/.zshrc
 ```
 
+**N.B.:** If the 1Password desktop app is signed in to multiple accounts is necessary to add the `--account` flag to the commands. 
+Otherwise, commands may accidentally be executed against the wrong account. The list the signed in accounts run `op account list`
+Example:
+
+```bash
+echo 'export GEMINI_API_KEY=$(op read "op://Private/GEMINI_API_KEY/credential" --account <ACCOUNT_ID>)' >> ~/.zshrc
+```
+
 ### Running a Kata
 
 ```bash
