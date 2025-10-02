@@ -2,6 +2,9 @@ from __future__ import annotations
 from typing import Any
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import EqualsExpected
+from pydantic_ai import Agent
+
+from open_data_contract import OpenDataContractStandardOdcs
 
 
 def main(unstructured_input: str) -> str:
@@ -43,11 +46,12 @@ def main(unstructured_input: str) -> str:
     Returns:
         Valid datacontract YAML string conforming to the Data Contract Specification
     """
-    # TODO: Implement data contract generation agent
-    # Hint: Consider using datamodel-code-generator for Pydantic models
-    # uv add datamodel-code-generator
-    # datamodel-codegen --url https://raw.githubusercontent.com/datacontract/datacontract-specification/main/datacontract.schema.json --output datacontract_models.py
-    raise NotImplementedError("Data Contract Generation Agent not implemented")
+    agent = Agent(
+        model="google-gla:gemini-2.5-pro", output_type=OpenDataContractStandardOdcs
+    )
+    response = agent.run_sync(unstructured_input).output
+
+    return str(response)
 
 
 # Evaluation dataset

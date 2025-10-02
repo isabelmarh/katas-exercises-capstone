@@ -16,14 +16,7 @@ dependencies = [
 katas = "src.cli:app"
 
 [tool.uv.workspace]
-members = [
-    "katas/data-glossary-audit",
-    "katas/dumb-example", 
-    "katas/datacontract",
-    "katas/punctuation",
-    "katas/code-review-bot",
-    "katas/commit-message-generator",
-]
+members = ["katas/*"]
 
 [build-system]
 requires = ["hatchling"]
