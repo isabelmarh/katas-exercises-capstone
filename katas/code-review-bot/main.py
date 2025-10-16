@@ -144,7 +144,10 @@ code_review_dataset = Dataset[str, str, Any](
 +     logger.info(f"Created user {user.id} with email {email}")
 +     return user""",
             expected_output=None,
-            metadata={"focus": "positive_feedback", "good_practices": ["validation", "logging", "type_hints"]},
+            metadata={
+                "focus": "positive_feedback",
+                "good_practices": ["validation", "logging", "type_hints"],
+            },
             evaluators=(
                 LLMJudge(
                     rubric="Review should recognize good practices like input validation, logging, and type hints",

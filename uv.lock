@@ -11,6 +11,7 @@ members = [
     "datacontract",
     "hello-agent",
     "punctuation",
+    "self-improving-agent",
 ]
 
 [[package]]
@@ -1654,6 +1655,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/6d/05/d52bf1e65044b4e5e
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6d/4f/d073e09df851cfa251ef7840007d04db3293a0482ce607d2b993926089be/s3transfer-0.13.1-py3-none-any.whl", hash = "sha256:a981aa7429be23fe6dfc13e80e4020057cbab622b08c0315288758d67cabc724", size = 85308, upload-time = "2025-07-18T19:22:40.947Z" },
 ]
+
+[[package]]
+name = "self-improving-agent"
+version = "0.1.0"
+source = { virtual = "katas/self-improving-agent" }
 
 [[package]]
 name = "shellingham"
