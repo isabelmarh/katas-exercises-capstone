@@ -10,6 +10,7 @@ dependencies = [
   "pyyaml",
   "rich",
   "pydantic-evals>=1.0.1",
+  "questionary>=2.1.1",
 ]
 
 [project.scripts]
@@ -29,3 +30,14 @@ dev = [
 ]
 [tool.hatch.build.targets.wheel]
 include = ["katas/*", "src"]
+
+
+[tool.basedpyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = '.venv'
+reportAny = false
+reportExplicitAny = false
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
