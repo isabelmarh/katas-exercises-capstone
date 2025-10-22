@@ -18,12 +18,15 @@ class Claim(BaseModel):
 
 
 class Assessment(BaseModel):
-    ring: Ring
+    ring: str
+    # ring: Ring = Field(description="...") # TODO: Give the agent more info on what to expect
     # claims: list[Claim] # TODO: Enable this on the second step
 
 
-agent: Agent[None, Assessment] = Agent(
-    model="google-gla:gemini-2.5-pro", output_type=Assessment, instructions="..."
+agent: Agent = Agent(
+    model="google-gla:gemini-2.5-pro",
+    # output_type=Assessment, # TODO: Enable this to change the output type
+    instructions="...",  # TODO: Tell the agent what todo
 )
 
 
@@ -36,7 +39,11 @@ def main():
     res = agent.run_sync(input)
 
     print("\nResult:\n")
-    print(res.output.model_dump_json(indent=2))
+
+    if isinstance(res.output, BaseModel):
+        print(res.output.model_dump_json(indent=2))
+    else:
+        print(str(res.output))
 
 
 if __name__ == "__main__":

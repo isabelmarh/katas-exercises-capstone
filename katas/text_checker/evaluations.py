@@ -128,6 +128,10 @@ def load_evaluation(yaml_path: str) -> Dataset[str, dict[str, Any], Any]:
 
 def run_agent(blip_description: str) -> dict[str, Any]:
     result = agent.run_sync(blip_description)
+
+    if isinstance(result.output, str):
+        return {}
+
     return result.output.model_dump()
 
 
