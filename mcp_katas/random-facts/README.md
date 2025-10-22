@@ -1,0 +1,3 @@
+- [Official Joke API](https://github.com/15Dkatz/official_joke_api)
+- [Quotable API](https://github.com/lukePeavey/quotable)
+- [MCP Documentation](https://modelcontextprotocol.io/)
