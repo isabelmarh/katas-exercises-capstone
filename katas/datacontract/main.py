@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 from typing import Any
+
+from pydantic_ai import Agent
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import EqualsExpected
-from pydantic_ai import Agent
 
 from open_data_contract import OpenDataContractStandardOdcs
 

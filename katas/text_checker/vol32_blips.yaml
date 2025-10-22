@@ -1,0 +1,314 @@
+blips:
+  - name: 1. Data product thinking
+    rating: Adopt
+    description: |
+      Organizations actively adopt data product thinking as a standard practice for managing data assets.
+      This approach treats data as a product with its own lifecycle, quality standards and focus on meeting
+      consumer needs. We now recommend it as default advice for data management, regardless of
+      whether organizations choose architectures like data mesh or lakehouse.
+      We emphasize consumer-centricity in data product thinking to drive greater adoption and value
+      realization. This means designing data products by working backward from use cases. We also
+      focus on capturing and managing both business-relevant metadata and technical metadata using
+      modern data catalogs like DataHub, Collibra, Atlan and Informatica. These practices improve data
+      discoverability and usability. Additionally, we apply data product thinking to scale AI initiatives and
+      create AI-ready data. This approach includes comprehensive lifecycle management, ensuring data
+      is not only well-governed and high quality but also retired in compliance with legal and regulatory
+      requirements when no longer needed.
+  - name: 2. Fuzz testing
+    rating: Adopt
+    description: |
+      Fuzz testing , or simply fuzzing, is a testing technique that has been around for a long time but it is
+      still one of the lesser-known techniques. The goal is to feed a software system all kinds of invalid
+      input and observe its behavior. For an HTTP endpoint, for example, bad requests should result in
+      4xx errors, but fuzz testing often provokes 5xx errors or worse. Well-documented and supported by
+      tools, fuzz testing is more relevant than ever with more AI-generated code and complacency with
+      AI generated code. That means it’s now a good time to adopt fuzz testing to ensure code remains
+      robust and secure.
+  - name: 3. Software Bill of Materials
+    rating: Adopt
+    description: |
+      Since our initial blip in 2021, Software Bill of Materials (SBOM) generation has transitioned from an
+      emerging practice to a sensible default across our projects. The ecosystem has matured significantly,
+      offering a robust tooling ecosystem and seamless CI/CD integration. Tools like Syft, Trivy and Snyk
+      provide comprehensive SBOM generation from source code to container images and vulnerability
+      scanning. Platforms such as FOSSA and Chainloop enhance security risk management by integrating
+      with development workflows and enforcing security policies. While a universal SBOM standard is still
+      evolving, broad support for SPDX and CycloneDX has minimized adoption challenges. AI systems also
+      require SBOMs, as evidenced by the UK Government’s AI Cyber Security Code of Practice and CISA’s
+      AI Cybersecurity Collaboration Playbook. We’ll continue to monitor developments in this space.
+  - name: 4. Threat modeling
+    rating: Adopt
+    description: |
+      In the rapidly evolving AI-driven landscape of software development, threat modeling is more crucial
+      than ever for building secure software while maintaining agility and avoiding the security sandwich.
+      Threat modeling — a set of techniques for identifying and classifying potential threats — applies
+      across various contexts, including generative AI applications, which introduce unique security risks.
+      To be effective, it must be performed regularly throughout the software lifecycle and works best
+      alongside other security practices. These include defining cross-functional security requirements to
+      address common risks in the project’s technologies and leveraging automated security scanners for
+      continuous monitoring.
+  - name: 5. API request collection as API product artifact
+    rating: Trial
+    description: |
+      Treating APIs as a product means prioritizing developer experience, not only by putting sensible and
+      standard design into APIs themselves but also providing comprehensive documentation as well as
+      smooth onboarding experiences. While OpenAPI (Swagger) specifications can effectively document
+      API interfaces, onboarding remains a challenge. Developers need rapid access to working examples,
+      with preconfigured authentication and realistic test data. With the maturing of API client tools (such as
+      Postman, Bruno and Insomnia), we recommend treating API request collection as API product artifact.
+      API request collections should be thoughtfully designed to guide developers through key workflows,
+      helping them to understand the API’s domain language and functionality with minimal effort. To keep
+      collections up to date, we recommend storing them in a repository and integrating them into the API’s
+      release pipeline.
+  - name: 6. Architecture advice process
+    rating: Trial
+    description: |
+      One of the persistent challenges in large software teams is determining who makes the architectural
+      decisions that shape the evolution of systems. The State of DevOps report reveals that the traditional
+      approach of Architecture Review Boards is counterproductive, often hindering workflow and
+      correlating with low organizational performance. A compelling alternative is an architectural advice
+      process — a decentralized approach where anyone can make any architectural decision, provided
+      they seek advice from those affected and those with relevant expertise. This method enables teams
+      to optimize for flow without compromising architectural quality, both at small and large scales. At
+      first glance, this approach may seem controversial, but practices such as Architecture Decision
+      Records and advisory forums ensure that decisions remain informed, while empowering those closest
+      to the work to make decisions. We’ve seen this model succeed at scale in an increasing number of
+      organizations, including those in highly regulated industries.
+  - name: 7. GraphRAG
+    rating: Trial
+    description: |
+      In our last update of RAG, we introduced GraphRAG, originally described in Microsoft’s article as
+      a two-step approach: (1) Chunking documents and using an LLM-based analysis of the chunks
+      to create a knowledge graph; (2) retrieving relevant chunks at query time via embeddings while
+      following edges in the knowledge graph to discover additional related chunks, which are then
+      added to the augmented prompt. In many cases this approach enhances LLM-generated responses.
+      We’ve observed similar benefits when using GenAI to understand legacy codebases, where we use
+      structural information — such as abstract syntax trees and dependencies — to build the knowledge
+      graph. The GraphRAG pattern has gained traction, with tools and frameworks like Neo4j’s GraphRAG
+      Python package emerging to support it. We also see Graphiti as fitting a broader interpretation of
+      GraphRAG as a pattern.
+  - name: 8. Just-in-time privileged access management
+    rating: Trial
+    description: |
+      Least privilege ensures users and systems have only the minimum access required to perform
+      their tasks. Privileged credential abuse is a major factor in security breaches, with privilege
+      escalation being a common attack vector. Attackers often start with low-level access and exploit
+      software vulnerabilities or misconfigurations to gain administrator privileges, especially when
+      accounts have excessive or unnecessary rights. Another overlooked risk is standing privileges —
+      continuously available privileged access that expands the attack surface. Just-in-time privileged
+      access management (JIT PAM) mitigates this by granting access only when needed and revoking
+      it immediately after, minimizing exposure. A true least-privilege security model ensures that users,
+      applications and systems have only the necessary rights for the shortest required duration — a
+      critical requirement for compliance and regulatory security. Our teams have implemented this through
+      an automated workflow that triggers a lightweight approval process, assigns temporary roles with
+      restricted access and enforces time to live (TTL) for each role, ensuring privileges expire automatically
+      once the task is completed.
+  - name: 9. Model distillation
+    rating: Trial
+    description: |
+      Scaling laws have been a key driver of the AI boom — the principle that larger models, datasets and
+      compute resources lead to more powerful AI systems. However, consumer hardware and edge devices
+      often lack the capacity to support large-scale models, creating the need for model distillation.
+      Model distillation transfers knowledge from a larger, more powerful model (teacher) to a smaller,
+      cost-efficient model (student). The process typically involves generating a sample dataset from the
+      teacher model and fine-tuning the student to capture its statistical properties. Unlike pruning or
+      quantization, which focus on compressing models by removing parameters, distillation aims to retain
+      domain-specific knowledge, minimizing accuracy loss. It can also be combined with quantization for
+      further optimization.
+      Originally proposed by Geoffrey Hinton et al., model distillation has gained widespread adoption.
+      A notable example is the Qwen/Llama distilled version of DeepSeek R1, which preserves strong
+      reasoning capabilities in smaller models. With its growing maturity, the technique is no longer
+      confined to research labs; it’s now being applied to everything from industrial to personal projects.
+      Providers such as OpenAI and Amazon Bedrock offer guides to help developers distill their own small
+      language models (SLMs). We believe adopting model distillation can help organizations manage LLM
+      deployment costs while unlocking the potential of on-device LLM inference.
+  - name: 10. Prompt engineering
+    rating: Trial
+    description: |
+      Prompt engineering refers to the process of designing and refining prompts for generative AI models
+      to produce high-quality, context-aware responses. This involves crafting clear, specific and relevant
+      prompts tailored to the task or application to optimize the model’s output. As LLM capabilities evolve,
+      particularly with the emergence of reasoning models, prompt engineering practices must also
+      adapt. Based on our experience with AI code generation, we’ve observed that few-shot prompting
+      may underperform compared to simple zero-shot prompting when working with reasoning models.
+      Additionally, the widely used chain-of-thought (CoT) prompting can degrade reasoning model
+      performance — likely because reinforcement learning has already fine-tuned their built-in
+      CoT mechanism.
+      Our hands-on experience aligns with academic research, which suggests “advanced models may
+      eliminate the need for prompt engineering in software engineering.” However, traditional prompt
+      engineering techniques still play a crucial role in reducing hallucinations and improving output quality,
+      especially given the differences in response time and token costs between reasoning models and
+      general LLMs. When building agentic applications, we recommend choosing models strategically,
+      based on your needs, while continuing to refine your prompt templates and corresponding techniques.
+      Striking the right balance among performance, response time and token cost remains key to
+      maximizing LLM effectiveness.
+  - name: 11. Small language models
+    rating: Trial
+    description: |
+      The recent announcement of DeepSeek R1 is a great example of why small language models (SLMs)
+      continue to be interesting. The full-size R1 has 671 billion parameters and requires about 1,342 GB of
+      VRAM in order to run, only achievable using a “mini cluster” of eight state-of-the-art NVIDIA GPUs.
+      But DeepSeek is also available “distilled” into Qwen and Llama — smaller, open-weight models —
+      effectively transferring its abilities and allowing it to be run on much more modest hardware. Though
+      the model gives up some performance at those smaller sizes, it still allows a huge leap in performance
+      over previous SLMs. The SLM space continues to innovate elsewhere, too. Since the last Radar,
+      Meta introduced Llama 3.2 at 1B and 3B sizes, Microsoft released Phi-4, offering high-quality results
+      with a 14B model, and Google released PaliGemma 2, a vision-language model at 3B, 10B and 28B
+      sizes. These are just a few of the models currently being released at smaller sizes and definitely an
+      important trend to continue to watch.
+  - name: 12. Using GenAI to understand legacy codebases
+    rating: Trial
+    description: |
+      In the past few months, using GenAI to understand legacy codebases has made some real progress.
+      Mainstream tools such as GitHub Copilot are being touted as being able to help modernize legacy
+      codebases. Tools such as Sourcegraph’s Cody are making it easier for developers to navigate and
+      understand entire codebases. These tools use a multitude of GenAI techniques to provide contextual
+      help, simplifying work with complex legacy systems. On top of that, specialized frameworks like
+      S3LLM are showing how LLMs can handle large-scale scientific software — such as that written in
+      Fortran or Pascal — bringing GenAI-enhanced understanding to codebases outside of traditional
+      enterprise IT. We think this technique is going to continue to gain traction given the sheer amount of
+      legacy software in the world.
+  - name: 13. AI-friendly code design
+    rating: Assess
+    description: |
+      Supervised software engineering agents are increasingly capable of identifying necessary updates
+      and making larger changes to a codebase. At the same time, we’re seeing growing complacency
+      with AI-generated code, and developers becoming reluctant to review large AI-made change sets.
+      A common justification for this is that human-oriented code quality matters less since AI can handle
+      future modifications; however, AI coding assistants also perform better with well-factored codebases,
+      making AI-friendly code design crucial for maintainability.
+      Fortunately, good software design for humans also benefits AI. Expressive naming provides domain
+      context and functionality; modularity and abstractions keep AI’s context manageable by limiting
+      necessary changes; and the DRY (don’t repeat yourself) principle reduces duplicate code — making
+      it easier for AI to keep the behavior consistent. So far, the best AI-friendly patterns align with
+      established best practices. As AI evolves, expect more AI-specific patterns to emerge, so thinking
+      about code design with this in mind will be extremely helpful.
+  - name: 14. AI-powered UI testing
+    rating: Assess
+    description: |
+      New techniques for AI-powered assistance on software teams are emerging beyond just code
+      generation. One area gaining traction is AI-powered UI testing, leveraging LLMs’ abilities to interpret
+      graphical user interfaces. There are several approaches to this. One category of tools uses multi-
+      modal LLMs fine-tuned for UI snapshot processing, allowing test scripts written in natural language
+      to navigate an application. Examples in this space include QA.tech or LambdaTests’ KaneAI. Another
+      approach, seen in Browser Use, combines multi-modal foundation models with Playwright’s insights
+      into a web page’s structure rather than relying on fine-tuned models.
+      When integrating AI-powered UI tests into a test strategy, it’s crucial to consider where they provide
+      the most value. These methods can complement manual exploratory testing, and while the non-
+      determinism of LLMs may introduce flakiness, their fuzziness can be an advantage. This could be
+      useful for testing legacy applications with missing selectors or applications that frequently change
+      labels and click paths.
+  - name: 15. Competence envelope as a model for understanding system failures
+    rating: Assess
+    description: |
+      The theory of graceful extensibility defines the basic rules governing adaptive systems, including the
+      socio-technical systems involved in building and operating software. A key concept in this theory
+      is the competence envelope — the boundary within which a system can function robustly in the
+      face of failure. When a system is pushed beyond its competence envelope, it becomes brittle and is
+      more likely to fail. This model provides a valuable lens for understanding system failure, as seen in
+      the complex failures that led to the 2024 Canva outage. Residuality theory, a recent development in
+      software architecture thinking, offers a way to test a system’s competence envelope by deliberately
+      introducing stressors and analyzing how the system has adapted to historical stressors over time. The
+      approaches align with concepts of anti-fragility, resilience and robustness in socio-technical systems,
+      and we’re eager to see practical applications of these ideas emerge in the field.
+  - name: 16. Structured output from LLMs
+    rating: Assess
+    description: |
+      Structured output from LLMs refers to the practice of constraining a language model’s response into
+      a defined schema. This can be achieved either by instructing a generalized model to respond in a
+      particular format or by fine-tuning a model so it “natively” outputs, for example, JSON. OpenAI now
+      supports structured output, allowing developers to supply a JSON Schema, pydantic or Zod object
+      to constrain model responses. This capability is particularly valuable for enabling function calling,
+      API interactions and external integrations, where accuracy and adherence to a format are critical.
+      Structured output not only enhances the way LLMs can interface with code but also supports broader
+      use cases like generating markup for rendering charts. Additionally, structured output has been shown
+      to reduce the chance of hallucinations in model outputs.
+  - name: 17. AI-accelerated shadow IT
+    rating: Hold
+    description: |
+      AI is lowering the barriers for noncoders to build and integrate software themselves, instead of waiting
+      for the IT department to get around to their requirements. While we’re excited about the potential this
+      unlocks, we’re also wary of the first signs of AI-accelerated shadow IT. No-code workflow automation
+      platforms now support AI API integration (e.g., OpenAI or Anthropic), making it tempting to use AI as
+      duct tape — stitching together integrations that previously weren’t possible, such as turning chat
+      messages in one system into ERP API calls via AI. At the same time, AI coding assistants are becoming
+      more agentic, enabling noncoders with basic training to build internal utility applications.
+      This has all the hallmarks of the next evolution of the spreadsheets that still power critical processes
+      in some enterprises — but with a much bigger footprint. Left unchecked, this new shadow IT could
+      lead to a proliferation of ungoverned, potentially insecure applications, scattering data across more
+      and more systems. Organizations should be aware of these risks and carefully weigh the trade-offs
+      between rapid problem-solving and long-term stability.
+  - name: 18. Complacency with AI-generated code
+    rating: Hold
+    description: |
+      As AI coding assistants continue to gain traction, so does the growing body of data and research
+      highlighting concerns about complacency with AI-generated code. GitClear’s latest code quality
+      research shows that in 2024, duplicate code and code churn have increased even more than
+      predicted, while refactoring activity in commit histories has declined. Also reflecting AI complacency,
+      Microsoft research on knowledge workers found that AI-driven confidence often comes at the
+      expense of critical thinking — a pattern we’ve observed as complacency sets in with prolonged use
+      of coding assistants. The rise of supervised software engineering agents further amplifies the risks,
+      because when AI generates larger and larger change sets, developers face greater challenges in
+      reviewing results. The emergence of “vibe coding” — where developers let AI generate code with
+      minimal review — illustrates the growing trust of AI-generated outputs. While this approach can be
+      appropriate for things like prototypes or other types of throw-away code, we strongly caution against
+      using it for production code.
+  - name: 19. Local coding assistants
+    rating: Hold
+    description: |
+      Organizations remain wary of third-party AI coding assistants, particularly due to concerns about code
+      confidentiality. As a result, many developers are considering using local coding assistants — AI that
+      runs entirely on their machines — eliminating the need to send code to external servers. However,
+      local assistants still lag behind their cloud-based counterparts, which rely on larger, more capable
+      models. Even on high-end developer machines, smaller models remain limited in their capabilities.
+      We’ve found that they struggle with complex prompts, lack the necessary context window for larger
+      problems and often cannot trigger tool integrations or function calls. These capabilities are especially
+      essential to agentic workflows, which is the cutting edge in coding assistance right now.
+      So while we recommend to proceed with low expectations, there are some capabilities that are valid
+      locally. Some popular IDEs do now embed smaller models into their core features, such as Xcode’s
+      predictive code completion and JetBrains’ full-line code completion. And locally runnable LLMs like
+      Qwen Coder are a step forward for local inline suggestions and handling simple coding queries.
+      You can test these capabilities with Continue, which supports the integration of local models via
+      runtimes like Ollama.
+  - name: 20. Replacing pair programming with AI
+    rating: Hold
+    description: |
+      When people talk about coding assistants, the topic of pair programming inevitably comes up.
+      Our profession has a love-hate relationship with it: some swear by it, others can’t stand it. Coding
+      assistants now raise the question: can a human pair with the AI instead of another human and get
+      the same results for the team? GitHub Copilot even calls itself “your AI pair programmer.” While we do
+      think a coding assistant can bring some of the benefits of pair programming, we advise against fully
+      replacing pair programming with AI. Framing coding assistants as pair programmers ignores one of the
+      key benefits of pairing: to make the team, not just the individual contributors, better. Coding assistants
+      can offer benefits for getting unstuck, learning about a new technology, onboarding or making tactical
+      work faster so that we can focus on the strategic design. But they don’t help with any of the team
+      collaboration benefits, like keeping the work-in-progress low, reducing handoffs and relearning,
+      making continuous integration possible or improving collective code ownership.
+  - name: 21. Reverse ETL
+    rating: Hold
+    description: |
+      We’re seeing a worrying proliferation of so-called Reverse ETL. Regular ETL jobs have their place
+      in traditional data architectures, where they transfer data from transaction processing systems to
+      a centralized analytics system, such as a data warehouse or data lake. While this architecture has
+      well-documented shortcomings, many of which are addressed by a data mesh, it remains common in
+      enterprises. In such an architecture, moving data back from a central analytics system to a transaction
+      system makes sense in certain cases — for example, when the central system can aggregate data
+      from multiple sources or as part of a transitional architecture when migrating toward a data mesh.
+      However, we’re seeing a growing trend where product vendors use Reverse ETL as an excuse to
+      move increasing amounts of business logic into a centralized platform — their product. This approach
+      exacerbates many of the issues caused by centralized data architectures, and we suggest exercising
+      extreme caution when introducing data flows from a sprawling, central data platform to transaction
+      processing systems.
+  - name: 22. SAFe™
+    rating: Hold
+    description: |
+      We see continued adoption of SAFe™ (Scaled Agile Framework®). We also continue to observe that
+      SAFe’s over-standardized, phase-gated processes create friction, that it can promote silos and that its
+      top-down control generates waste in the value stream and discourages engineering talent creativity,
+      while limiting autonomy and experimentation in teams. A key reason for adoption is the complexity
+      of making an organization agile, with enterprises hoping that a framework like SAFe offers a simple,
+      process-based shortcut to becoming agile. Given the widespread adoption of SAFe — including
+      among our clients — we’ve trained over 100 Thoughtworks consultants to better support them.
+      Despite this in-depth knowledge and no lack of trying we come away thinking that sometimes there
+      just is no simple solution to a complex problem, and we keep recommending leaner, value-driven
+      approaches and governance that work in conjunction with a comprehensive change program.

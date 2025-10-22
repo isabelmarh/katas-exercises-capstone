@@ -21,5 +21,11 @@ members = ["katas/*"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.31.7",
+    "ruff>=0.14.1",
+]
 [tool.hatch.build.targets.wheel]
 include = ["katas/*", "src"]
