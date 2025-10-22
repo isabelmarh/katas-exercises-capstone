@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from typing import Literal
 
+import questionary
 from pydantic import AnyUrl, BaseModel, Field
 from pydantic_ai import Agent
 
 type Ring = Literal["Hold", "Assess", "Trial", "Adopt"]
 type ClaimRating = Literal["TRUE", "FALSE", "MISLEADING", "UNVERIFIABLE"]
-import questionary
-
 
 
 class Claim(BaseModel):
@@ -27,7 +26,8 @@ agent: Agent[None, Assessment] = Agent(
     model="google-gla:gemini-2.5-pro", output_type=Assessment, instructions="..."
 )
 
-if __name__ == "__main__":
+
+def main():
     input = questionary.text(
         message="What is the TechRadar Blip description?\n", multiline=True
     ).ask()
@@ -37,3 +37,7 @@ if __name__ == "__main__":
 
     print("\nResult:\n")
     print(res.output.model_dump_json(indent=2))
+
+
+if __name__ == "__main__":
+    main()

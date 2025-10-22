@@ -1,18 +1,18 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Annotated, Any
 
 import yaml
+from katas.text_checker.agent import Ring, agent
 from pydantic import Field
 from pydantic_ai import Agent, PromptedOutput
 from pydantic_ai.builtin_tools import UrlContextTool
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import EvaluationReason, Evaluator, EvaluatorContext
 from typing_extensions import override
-
-from katas.text_checker.agent import Ring
 
 
 @dataclass
@@ -30,12 +30,12 @@ class CorrectRingEval(Evaluator):
         self, ctx: EvaluatorContext[str, dict[str, Any]]
     ) -> EvaluationReason:
         if "ring" not in ctx.output:
-            return EvaluationReason(value=-1, reason="No ring classification given ")
+            return EvaluationReason(value=-1.0, reason="No ring classification given ")
 
         if ctx.output["ring"] == self.expected_rating:
             score = 1.0
         elif ctx.output["ring"] == "Hold" or self.expected_rating == "Hold":
-            score = 0.1
+            score = 0.0
         else:
             score = 0.5
 
@@ -57,7 +57,7 @@ class NumberFactsEval(Evaluator):
         self, ctx: EvaluatorContext[str, dict[str, Any]]
     ) -> EvaluationReason:
         if "claims" not in ctx.output:
-            return EvaluationReason(value=-1, reason="No claims provided")
+            return EvaluationReason(value=-1.0, reason="No claims provided")
 
         score = min(len(ctx.output["claims"]) / self.number_facts, 1)
         return EvaluationReason(
@@ -80,7 +80,7 @@ class SourceCredibilityEvals(Evaluator):
         self, ctx: EvaluatorContext[str, dict[str, Any]]
     ) -> EvaluationReason:
         if "claims" not in ctx.output:
-            return EvaluationReason(value=-1, reason="No claims provided")
+            return EvaluationReason(value=-1.0, reason="No claims provided")
 
         sources: list[str] = []
         for claim in ctx.output["claims"]:
@@ -124,3 +124,21 @@ def load_evaluation(yaml_path: str) -> Dataset[str, dict[str, Any], Any]:
         cases=cases,
         evaluators=[NumberFactsEval(number_facts=3), SourceCredibilityEvals()],
     )
+
+
+def run_agent(blip_description: str) -> dict[str, Any]:
+    result = agent.run_sync(blip_description)
+    return result.output.model_dump()
+
+
+def main():
+    vol32_blips_dataset = load_evaluation(
+        os.path.join(os.path.dirname(__file__), "vol32_blips.yaml")
+    )
+
+    report = vol32_blips_dataset.evaluate_sync(run_agent)
+    report.print(include_reasons=True)
+
+
+if __name__ == "__main__":
+    main()

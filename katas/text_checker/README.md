@@ -20,4 +20,9 @@ Breakdown of the main challenges:
 
 ## Input
 
-* `blips_vol32.yaml`, Note no guarantee for correctness has been converted to yaml via Gemini
+* `blips_vol32.yaml` (at least some blips)
+
+## How to run it?
+
+* `text-check`: runs the agent
+* `text-check-evals`: runs the evaluation
