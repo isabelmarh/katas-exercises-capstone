@@ -1,4 +1,5 @@
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
+import httpx
 
 mcp = FastMCP("random-facts")
 

@@ -47,18 +47,22 @@ cd mcp_katas/<kata-name>
 uv sync
 
 # Edit server.py and implement the TODO sections
-# using the @mcp.tool() decorator
 
-uv run server.py
+# Test your implementation
+mcp dev server.py
 ```
+
+This automatically opens the MCP inspector!
 
 ### Testing Your Implementation
 
-Use the MCP inspector to test your tools:
+Use the MCP CLI to test your tools:
 
 ```bash
-npx @modelcontextprotocol/inspector uv run server.py
+mcp dev server.py
 ```
+
+This opens an interactive inspector where you can test each tool!
 
 ### Using with Claude Desktop
 
@@ -68,12 +72,10 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 {
   "mcpServers": {
     "weather": {
-      "command": "uv",
+      "command": "mcp",
       "args": [
-        "--directory",
-        "/Users/benomahony/thoughtworks/ai-agent-katas/mcp_katas/weather-api",
-        "run",
-        "server.py"
+        "dev",
+        "/Users/benomahony/thoughtworks/ai-agent-katas/mcp_katas/weather-api/server.py"
       ]
     }
   }
@@ -89,10 +91,10 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 ## FastMCP Patterns
 
-All katas use fastmcp, which simplifies MCP server development:
+All katas use the FastMCP API from the official MCP Python SDK:
 
 ```python
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 import httpx
 
 mcp = FastMCP("my-server")
@@ -104,9 +106,6 @@ async def my_tool(param: str) -> str:
         response = await client.get(f"https://api.example.com/{param}")
         data = response.json()
         return f"Result: {data['field']}"
-
-if __name__ == "__main__":
-    mcp.run()
 ```
 
 ## Resources

@@ -1,4 +1,5 @@
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
+import httpx
 
 mcp = FastMCP("currency-exchange")
 
@@ -15,7 +16,3 @@ mcp = FastMCP("currency-exchange")
 
 # TODO: Implement list_currencies tool
 # Hint: Call the API with any base currency and extract all keys from rates dict
-
-
-if __name__ == "__main__":
-    mcp.run()

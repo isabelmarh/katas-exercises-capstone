@@ -1,4 +1,5 @@
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
+import httpx
 
 mcp = FastMCP("weather-api")
 
@@ -11,7 +12,3 @@ mcp = FastMCP("weather-api")
 # TODO: Implement get_forecast tool  
 # Hint: Parse the weather array from the API response
 # Return forecast for the requested number of days
-
-
-if __name__ == "__main__":
-    mcp.run()

@@ -54,21 +54,18 @@ Your server should expose these tools:
 # Install dependencies
 uv sync
 
-# Implement the tools in server.py using fastmcp
+# Implement the tools in server.py
 
-# Run the MCP server
-uv run server.py
-
-# Test with MCP inspector
-npx @modelcontextprotocol/inspector uv run server.py
+# Test your server
+mcp dev server.py
 ```
 
 ## Implementation Hints
 
-Use fastmcp's `@mcp.tool()` decorator with optional parameters:
+Use the `@mcp.tool()` decorator with optional parameters:
 
 ```python
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 import httpx
 
 mcp = FastMCP("carbon-intensity")

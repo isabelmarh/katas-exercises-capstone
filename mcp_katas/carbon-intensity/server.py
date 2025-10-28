@@ -1,4 +1,5 @@
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
+import httpx
 
 mcp = FastMCP("carbon-intensity")
 
@@ -15,7 +16,3 @@ mcp = FastMCP("carbon-intensity")
 # TODO: Implement get_generation_mix tool
 # Hint: Call https://api.carbonintensity.org.uk/generation
 # Parse the generationmix array
-
-
-if __name__ == "__main__":
-    mcp.run()
