@@ -20,8 +20,8 @@ mcp = FastMCP("random-facts")
 
 
 # TODO: Implement get_quote tool
-# Hint: Call https://api.quotable.io/random
-# Extract content and author fields
+# Hint: Call https://zenquotes.io/api/random
+# Extract quote "q" and author "q" fields
 
 
 if __name__ == "__main__":
