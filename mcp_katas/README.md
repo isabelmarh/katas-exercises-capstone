@@ -1,6 +1,6 @@
 # MCP Server Katas
 
-Practice building Model Context Protocol (MCP) servers with real-world APIs using fastmcp.
+Practice building Model Context Protocol (MCP) servers with real-world APIs in Python and .NET.
 
 ## What are MCP Servers?
 
@@ -35,31 +35,72 @@ Fun MCP server aggregating multiple fact APIs.
 
 ## Getting Started
 
-Each kata provides:
-- `README.md` - Challenge description and API docs
+Each kata contains a `README.md` with the challenge description and API docs. 
+
+Within each kata, there are folders for Python and C# . 
+
+Python folder structure:
+
 - `server.py` - Skeleton code with TODOs for you to implement
 - `pyproject.toml` - Dependencies
 
+C# folder structure:
+- `Server.cs` - Skeleton code with TODOs for you to implement
+- `Project.csproj` - Project SDK / dependencies
+
+
 ### Implementing a Kata
 
+Python:
 ```bash
-cd mcp_katas/<kata-name>
+# Navigate to the kata
+cd <kata-name>/py
+
+# Sync dependencies
 uv sync
 
 # Edit server.py and implement the TODO sections
 
 # Test your implementation
+# This automatically opens the MCP inspector!
 mcp dev server.py
 ```
 
-This automatically opens the MCP inspector!
+C#:
+```bash
+# Navigate to the kata
+cd <kata-name>/cs
+
+# Install dependencies
+dotnet restore
+
+# Run the kata project
+dotnet run
+
+# Open the MCP Inspector to test your MCP Server
+# Note: Requires NodeJS to be installed - see https://nodejs.org/download
+npx @modelcontextprotocol/inspector
+```
+
+
 
 ### Testing Your Implementation
 
 Use the MCP CLI to test your tools:
 
+Python:
 ```bash
+# This automatically opens the MCP inspector
 mcp dev server.py
+```
+
+NodeJS (suitable for C# developers):
+
+> Note: Requires NodeJS to be installed - see https://nodejs.org/download
+
+```bash
+# This automatically opens the MCP inspector
+npx @modelcontextprotocol/inspector
 ```
 
 This opens an interactive inspector where you can test each tool!
@@ -68,6 +109,7 @@ This opens an interactive inspector where you can test each tool!
 
 Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 
+Python:
 ```json
 {
   "mcpServers": {
@@ -75,12 +117,27 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
       "command": "mcp",
       "args": [
         "dev",
-        "/Users/benomahony/thoughtworks/ai-agent-katas/mcp_katas/weather-api/server.py"
+        "<path-to-katas-repository>/mcp_katas/weather-api/py/server.py"
       ]
     }
   }
 }
 ```
+
+C#:
+```json
+{
+  "mcpServers": {
+    "weather": {
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "<path-to-katas-repository>/mcp_katas/weather-api/cs/Project.csproj"
+      ]
+    }
+  }
+}
 
 ## Learning Path
 
@@ -110,8 +167,9 @@ async def my_tool(param: str) -> str:
 
 ## Resources
 
-- [FastMCP Documentation](https://github.com/jlowin/fastmcp)
 - [MCP Documentation](https://modelcontextprotocol.io/)
+- [FastMCP Documentation](https://github.com/jlowin/fastmcp)
+- [C# MCP Documentation](https://github.com/modelcontextprotocol/csharp-sdk)
 - [Claude Desktop](https://claude.ai/download)
 
 ## Tips

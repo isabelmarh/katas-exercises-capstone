@@ -1,7 +1,11 @@
-﻿using ModelContextProtocol.Server;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Server;
 using System.ComponentModel;
+using System.Reflection.Metadata.Ecma335;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = Host.CreateApplicationBuilder(args);
 builder.Logging.AddConsole(consoleLogOptions =>
 {
     // Configure all logs to go to stderr
@@ -9,29 +13,24 @@ builder.Logging.AddConsole(consoleLogOptions =>
 });
 builder.Services
     .AddMcpServer()
-    .WithHttpTransport()
-    // For StdIO, comment out the above line and uncomment the line below
-    // .WithStdioServerTransport()
+    .WithStdioServerTransport()
     .WithToolsFromAssembly();
 
-// For Stdio
-// await builder.Build().RunAsync();
-
-// For HTTP transport
-var app = builder.Build();
-app.MapMcp();
-app.Run("http://localhost:3001");
+await builder.Build().RunAsync();
 
 [McpServerToolType]
 public static class GetCurrentWeatherTool
 {
-    [McpServerTool, Description("Returns current temperature, conditions, humidity, wind speed for a given location")]
+    [McpServerTool(), Description("Returns current temperature, conditions, humidity, wind speed for a given location")]
     public static string GetCurrentWeather(string location = "")
     {
         // TODO: Implement 
         // Hint: Use httpx to call https://wttr.in/{location}?format=j1
         // Return current temperature, conditions, humidity, wind speed
         throw new NotImplementedException();
+
+        // Use this to test connections
+        // return "26 degrees C, some clouds, 80% humidity, wind speed is 12 m/s";
     }
 }
 
