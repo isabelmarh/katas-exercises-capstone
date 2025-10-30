@@ -25,7 +25,7 @@ public static class GetCurrentWeatherTool
     public static string GetCurrentWeather(string location = "")
     {
         // TODO: Implement 
-        // Hint: Use httpx to call https://wttr.in/{location}?format=j1
+        // Hint: Use HttpClient to call https://wttr.in/{location}?format=j1
         // Return current temperature, conditions, humidity, wind speed
         throw new NotImplementedException();
 
