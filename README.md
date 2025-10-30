@@ -1,6 +1,6 @@
 # AI Agent Katas
 
-A collection of practice exercises (katas) for building and evaluating AI agents using [PydanticAI](https://ai.pydantic.dev/) and [pydantic-evals](https://pydantic-evals.pydantic.dev/).
+A collection of practice exercises (katas) for building and evaluating AI agents. using [PydanticAI](https://ai.pydantic.dev/) and [pydantic-evals](https://pydantic-evals.pydantic.dev/).
 
 ## 🎯 What are AI Agent Katas?
 
@@ -50,6 +50,7 @@ echo 'export GEMINI_API_KEY=$(op read "op://Private/GEMINI_API_KEY/credential" -
 
 ### Running a Kata
 
+Python:
 ```bash
 # Sync dependencies
 uv sync
@@ -65,6 +66,23 @@ katas run <kata-name>
 
 # Interactive kata selection
 katas run
+```
+
+C#:
+```bash
+# Navigate to the kata
+cd {katas|mcp_katas}/{kata-name}/cs
+
+# Install dependencies
+dotnet restore
+
+# Run the kata project
+dotnet run
+
+# Open the MCP Inspector to interact with your MCP Server
+# Note: Requires NodeJS to be installed - see https://nodejs.org/download
+npx @modelcontextprotocol/inspector
+
 ```
 
 ### Checking Setup
