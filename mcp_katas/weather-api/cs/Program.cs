@@ -22,26 +22,22 @@ await builder.Build().RunAsync();
 public static class GetWeatherInformationTool
 {
     [McpServerTool(Name="Get Current Weather"), Description("Returns current temperature, conditions, humidity, wind speed for a given location")]
-    public static string GetCurrentWeather(string location = "")
+    public static async Task<string> GetCurrentWeather(string location = "")
     {
-        // TODO: Implement 
+        // TODO: Implement tool
         // Hint: Use HttpClient to call https://wttr.in/{location}?format=j1
         // Return current temperature, conditions, humidity, wind speed
-        //throw new NotImplementedException();
-
-        // Use this to test connections
-         return "26 degrees C, some clouds, 80% humidity, wind speed is 12 m/s";
+        
+        throw new NotImplementedException();
     }
 
     [McpServerTool, Description("Returns the weather forecast for the requested number of days, for a given location")]
-    public static string GetWeatherForecast(string location = "", int days = 1)
+    public static async Task<string> GetWeatherForecast(string location = "", int days = 1)
     {
-        // TODO: Implement 
+        // TODO: Implement tool
         // Hint: Parse the weather array from the API response
         // Return forecast for the requested number of days
+        
         throw new NotImplementedException();
-
-        // Use this to test connections
-        // return $"The weather for the next {days} days is wet ";
     }
 }

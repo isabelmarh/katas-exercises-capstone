@@ -21,19 +21,19 @@ await builder.Build().RunAsync();
 public static class GetRandomFactsTool
 {
     [McpServerTool, Description("Get a random fact about cats")]
-    public static string GetCatFact()
+    public static async Task<string> GetCatFact()
     {
-        // TODO: Implement GetCatFact tool
+        // TODO: Implement tool
         // Hint: Call https://catfact.ninja/fact and extract the 'fact' field
-        //  Return with a fun emoji prefix
+        // Return with a fun emoji prefix
 
         throw new NotImplementedException();
     }
 
     [McpServerTool, Description("Get a useless fact")]
-    public static string GetUselessFact()
+    public static async Task<string> GetUselessFact()
     {
-        // TODO: Implement GetUselessFact tool  
+        // TODO: Implement tool  
         // Hint: Call https://uselessfacts.jsph.pl/api/v2/facts/random
         // Extract the 'text' field
 
@@ -41,9 +41,9 @@ public static class GetRandomFactsTool
     }
 
     [McpServerTool, Description("Get a joke")]
-    public static string GetJoke()
+    public static async Task<string> GetJoke()
     {
-        // TODO: Implement GetJoke tool
+        // TODO: Implement tool
         // Hint: Call https://official-joke-api.appspot.com/random_joke
         // Format with setup and punchline
 
@@ -51,9 +51,9 @@ public static class GetRandomFactsTool
     }
 
     [McpServerTool, Description("Get a quote")]
-    public static string GetQuote()
+    public static async Task<string> GetQuote()
     {
-        // TODO: Implement GetQuote tool
+        // TODO: Implement tool
         // Hint: Call https://zenquotes.io/api/random
         // Extract quote "q" and author "q" fields
 
