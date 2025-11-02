@@ -21,7 +21,10 @@ text-check ="katas.text_checker.agent:main"
 text-check-evals ="katas.text_checker.evaluations:main"
 
 [tool.uv.workspace]
-members = ["katas/*"]
+members = [
+  "katas/*/py",
+  "mcp_katas/*/py"
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -33,7 +36,11 @@ dev = [
     "ruff>=0.14.1",
 ]
 [tool.hatch.build.targets.wheel]
-include = ["katas/*", "src"]
+include = [
+  "katas/*/py",
+  "mcp_katas/*/py",
+  "src"
+]
 
 
 [tool.basedpyright]
