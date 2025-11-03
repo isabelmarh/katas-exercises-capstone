@@ -22,7 +22,10 @@ public class HelloAgent
             }
         )
         .GetChatClient("gpt-oss-20b")
-        .AsIChatClient();
+        .AsIChatClient()
+        // Override MaxOutputTokens to allow eval to work with reasoning models
+        .AsBuilder()
+        .ConfigureOptions(o => o.MaxOutputTokens = null).Build();
 
         IEvaluator eval = new EquivalenceEvaluator();
 
@@ -60,13 +63,12 @@ public class HelloAgent
         // 2. Check the rating (if your LLM returns proper format, you'll get Good/Exceptional)
         //    For now, accept Inconclusive since local LLM may not return expected format
         Assert.True(metrics.Interpretation.Rating is
-            EvaluationRating.Inconclusive or
-            EvaluationRating.Good or
+            // Loosen the eval: EvaluationRating.Good or
             EvaluationRating.Exceptional,
             $"Unexpected rating: {metrics.Interpretation.Rating}. Reason: {metrics.Reason}");
 
         // Optional: Check for diagnostics (may contain parsing issues with local LLM)
-        // Assert.False(metrics.ContainsDiagnostics(), "Evaluation produced diagnostic issues");
+        Assert.False(metrics.ContainsDiagnostics(), "Evaluation produced diagnostic issues");
 
     }
 
