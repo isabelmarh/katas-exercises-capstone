@@ -21,7 +21,7 @@ public class HelloAgent
                 Endpoint = new Uri("http://localhost:1234/v1")
             }
         )
-        .GetChatClient("gpt-oss-20b")
+        .GetChatClient("unsloth/gpt-oss-20b")
         .AsIChatClient()
         // Override MaxOutputTokens to allow eval to work with reasoning models
         .AsBuilder()

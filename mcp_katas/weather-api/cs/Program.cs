@@ -27,8 +27,8 @@ public static class GetWeatherInformationTool
         // TODO: Implement tool
         // Hint: Use HttpClient to call https://wttr.in/{location}?format=j1
         // Return current temperature, conditions, humidity, wind speed
-        
-        throw new NotImplementedException();
+
+        return "It is wet.";
     }
 
     [McpServerTool, Description("Returns the weather forecast for the requested number of days, for a given location")]
