@@ -2,7 +2,7 @@ from mcp.server.fastmcp import FastMCP
 import httpx
 
 mcp = FastMCP("carbon-intensity")
-
+http_client = httpx.Client()
 
 # TODO: Implement get_current_intensity tool
 # Hint: Call https://api.carbonintensity.org.uk/intensity for national data

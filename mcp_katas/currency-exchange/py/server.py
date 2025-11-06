@@ -2,6 +2,7 @@ from mcp.server.fastmcp import FastMCP
 import httpx
 
 mcp = FastMCP("currency-exchange")
+http_client = httpx.Client()
 
 
 # TODO: Implement get_exchange_rate tool
