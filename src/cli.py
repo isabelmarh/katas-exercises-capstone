@@ -20,13 +20,10 @@ def discover_katas(workspace_path: Path = Path("katas")) -> list[KataConfig]:
     if not workspace_path.exists():
         return []
 
-    def create_agent_name(file_path: Path):
-        return file_path.relative_to(workspace_path).parts[0]
-
     agent_files = [file for file in workspace_path.rglob("main.py") if file.exists()]
     return [
         KataConfig(
-            name=create_agent_name(agent_file),
+            name=agent_file.relative_to(workspace_path).parts[0],
             path=agent_file.parent,
             agent_file=agent_file,
         ) for agent_file in agent_files
