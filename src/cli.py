@@ -21,7 +21,7 @@ def discover_katas(workspace_path: Path = Path("katas")) -> list[KataConfig]:
     if not workspace_path.exists():
         return katas
 
-    for kata_dir in workspace_path.iterdir():
+    for kata_dir in workspace_path.rglob("*"):
         if not kata_dir.is_dir():
             continue
 

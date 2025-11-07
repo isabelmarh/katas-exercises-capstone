@@ -233,7 +233,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone repo
 git clone https://github.com/twlabs/katas-exercises/
-cd ai-agent-katas
+cd katas
 
 # Setup environment
 uv sync
