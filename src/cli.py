@@ -17,26 +17,20 @@ class KataConfig(BaseModel):
 
 
 def discover_katas(workspace_path: Path = Path("katas")) -> list[KataConfig]:
-    katas = []
     if not workspace_path.exists():
-        return katas
+        return []
 
-    for kata_dir in workspace_path.rglob("*"):
-        if not kata_dir.is_dir():
-            continue
+    def create_agent_name(file_path: Path):
+        return file_path.relative_to(workspace_path).parts[0]
 
-        agent_file = kata_dir / "main.py"
-
-        if agent_file.exists():
-            katas.append(
-                KataConfig(
-                    name=kata_dir.name,
-                    path=kata_dir,
-                    agent_file=agent_file,
-                )
-            )
-
-    return katas
+    agent_files = [file for file in workspace_path.rglob("main.py") if file.exists()]
+    return [
+        KataConfig(
+            name=create_agent_name(agent_file),
+            path=agent_file.parent,
+            agent_file=agent_file,
+        ) for agent_file in agent_files
+    ]
 
 
 def load_agent_function_from_file(agent_file: Path):
