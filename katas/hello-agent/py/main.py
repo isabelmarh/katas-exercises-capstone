@@ -7,8 +7,11 @@ from pydantic_ai import Agent
 
 def main(inputs: str) -> str:
     """Simple test function that handles basic math."""
+
+    # Create an agent using Google Gemini model
     agent = Agent(
-        model='google-gla:gemini-2.5-pro'
+        # model='google-gla:gemini-2.5-pro'
+        model='anthropic:claude-sonnet-4-0'
     )
 
     result = agent.run_sync(inputs)

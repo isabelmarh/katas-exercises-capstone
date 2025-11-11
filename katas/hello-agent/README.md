@@ -2,7 +2,7 @@
 
 ## Goal
 
-Show that the using PydanticAI Agent with Google Gemini works and is configured correctly
+Show that the using PydanticAI Agent with Google Gemini or Claude works and is configured correctly
 
 ## Steps
 
