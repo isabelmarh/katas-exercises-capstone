@@ -240,7 +240,8 @@ uv sync
 source .venv/bin/activate
 
 # Set API key
-export GEMINI_API_KEY="your-key"
+export GEMINI_API_KEY="your-key" or
+export ANTHROPIC_API_KEY="your-key"
 
 # Verify setup
 katas run hello-agent
