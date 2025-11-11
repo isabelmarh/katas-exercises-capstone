@@ -122,7 +122,7 @@ agent = Agent(
 from pydantic_ai import Agent
 
 agent = Agent(
-    model='anthropic:claude-sonnet-4-0',
+    model='anthropic:claude-sonnet-4-5',
     instructions='Your insructions here',
 )
 ```

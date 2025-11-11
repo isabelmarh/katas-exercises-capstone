@@ -11,7 +11,7 @@ def main(inputs: str) -> str:
     # Create an agent using Google Gemini model
     agent = Agent(
         # model='google-gla:gemini-2.5-pro'
-        model='anthropic:claude-sonnet-4-0'
+        model='anthropic:claude-sonnet-4-5'
     )
 
     result = agent.run_sync(inputs)
