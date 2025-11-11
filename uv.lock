@@ -31,6 +31,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
+    { name = "logfire", extra = ["httpx"] },
     { name = "mcp", extra = ["cli"] },
     { name = "pydantic-ai" },
     { name = "pydantic-evals" },
@@ -49,6 +50,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
+    { name = "logfire", extras = ["httpx"], specifier = ">=4.14.2" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.19.0" },
     { name = "pydantic-ai" },
     { name = "pydantic-evals", specifier = ">=1.0.1" },

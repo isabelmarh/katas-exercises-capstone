@@ -40,7 +40,7 @@ export GEMINI_API_KEY=$(op read "op://Private/GEMINI_API_KEY/credential")
 echo 'export GEMINI_API_KEY=$(op read "op://Private/GEMINI_API_KEY/credential")' >> ~/.zshrc
 ```
 
-**N.B.:** If the 1Password desktop app is signed in to multiple accounts is necessary to add the `--account` flag to the commands. 
+**N.B.:** If the 1Password desktop app is signed in to multiple accounts is necessary to add the `--account` flag to the commands.
 Otherwise, commands may accidentally be executed against the wrong account. The list the signed in accounts run `op account list`
 Example:
 
@@ -78,18 +78,6 @@ source .venv/bin/activate
 katas run hello-agent
 ```
 
-## 🏗️ Kata Structure
-
-Each kata follows a consistent structure:
-
-```bash
-katas/<kata-name>/
-├── README.md         # Kata description and goals
-├── evals.yaml        # Test cases and evaluation criteria
-├── main.py           # Your agent implementation
-└── pyproject.toml    # Kata-specific dependencies
-```
-
 ### Creating Your Agent
 
 Here is an example of a simple agent that uses the PydanticAI Agent:
@@ -112,10 +100,74 @@ The evaluation system uses [pydantic-evals](https://pydantic-evals.pydantic.dev/
 - Compare outputs against expected results
 - Generate detailed performance reports
 
+## 🔍 Observability using Opik
+
+[Opik](https://www.comet.com/docs/opik/) is a tool for monitoring and analyzing your AI agents.
+
+To use Opik, you will need to:
+
+### Clone the Opik repository
+
+```bash
+git clone https://github.com/comet-ml/opik.git`
+```
+
+### Navigate to the repository
+
+```bash
+cd opik
+```
+
+### Start the Opik platform
+
+```bash
+./opik.sh
+```
+
+###  Python Tracing
+
+Add the following to your agent:
+
+```python
+import os
+import logfire
+
+os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:5173/api/v1/private/otel"
+_ = logfire.configure(send_to_logfire=False, service_name="ai-lsp")
+logfire.instrument_pydantic_ai()
+logfire.instrument_httpx(capture_all=True)
+```
+
+### 󰪮 .NET Tracing
+
+Add the following to your agent:
+
+```csharp
+# Agent Framework (2 packages)
+dotnet add package Microsoft.Agents.AI --prerelease
+dotnet add package Microsoft.Extensions.AI.OpenAI --prerelease
+
+# Hosting (1 package)
+dotnet add package Microsoft.Extensions.Hosting
+
+# OpenTelemetry (3 packages)
+dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
+dotnet add package OpenTelemetry.Extensions.Hosting
+dotnet add package OpenTelemetry.Instrumentation.Http
+```
+
+And set the following environment variables:
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:5173/api/v1/private/otel/v1/traces
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+```
+
 ## 📖 Learning Resources
 
 - [PydanticAI Documentation](https://ai.pydantic.dev/)
 - [Pydantic Evals Documentation](https://ai.pydantic.dev/evals/)
+- [Opik](https://www.comet.com/docs/opik/)
 
 ## 🤝 Contributing
 
