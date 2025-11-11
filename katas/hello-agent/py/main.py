@@ -8,9 +8,8 @@ from pydantic_ai import Agent
 def main(inputs: str) -> str:
     """Simple test function that handles basic math."""
 
-    # Create an agent using Google Gemini model
+    # Create an agent using Claude model
     agent = Agent(
-        # model='google-gla:gemini-2.5-pro'
         model='anthropic:claude-sonnet-4-5'
     )
 
