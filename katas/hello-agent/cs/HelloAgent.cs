@@ -24,7 +24,6 @@ public class HelloAgent
 {
     private static string AgentName = "HelloAgent";
     private static readonly ActivitySource AgentActivitySource = new ActivitySource(AgentName);
-    private static readonly Meter AgentMeter = new(AgentName, "1.0");
 
     [Fact]
     public async Task Run()
@@ -34,77 +33,33 @@ public class HelloAgent
         var openAiApiEndpoint = Environment.GetEnvironmentVariable("OPENAI_API_ENDPOINT") ?? "http://localhost:1234/v1";
         var openApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? "no-key-required";
         var model = Environment.GetEnvironmentVariable("OPENAI_API_MODEL") ?? "unsloth/gpt-oss-20b";
-        
-        // Method to configure exporter options
-        Action<OtlpExporterOptions> otlpExporterOptions = (options) => 
-        {
-            options.Endpoint = new Uri(otlpEndpoint);
-            options.Protocol = OtlpExportProtocol.HttpProtobuf;
-            options.Headers = $"projectName=katas";
-        };
-        // Method to configure otel logging
-        Action<OpenTelemetryLoggerOptions> otelLoggingOptions = options =>
-        {
-            options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(AgentName, serviceVersion: "1.0.0"));
-            options.AddOtlpExporter(otlpOptions => otlpOptions.Endpoint = new Uri(otlpEndpoint));
-            options.IncludeScopes = true;
-            options.IncludeFormattedMessage = true;
-        };
-
-        // Configure OTel tracing
-        // using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-        //     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(AgentName))
-        //     .AddSource(AgentName)
-        //     .AddSource("*Microsoft.Agents.AI") // Agent Framework telemetry
-        //     .AddHttpClientInstrumentation() // Capture HTTP calls to OpenAI
-        //     .AddOtlpExporter(otlpExporterOptions)
-        //     .Build();    
 
         // Start an activity (span) with some tags (attributes)
         using (var activity = AgentActivitySource.StartActivity(AgentName))
         {
-            // IChatClient chatClient = new OpenAIClient(
-            //     new ApiKeyCredential("no-key-required"),
-            //     new OpenAIClientOptions()
-            //     {
-            //         Endpoint = new Uri(openAiApiEndpoint)
-            //     }
-            // )
-            // .GetChatClient(model)
-            // .AsIChatClient()
-            // // Override MaxOutputTokens to allow eval to work with reasoning models
-            // .AsBuilder()
-            // .UseOpenTelemetry(                  // Enable telemetry on chat client
-            //     sourceName: AgentName,
-            //     configure: (cfg) => cfg.EnableSensitiveData = true)
-            // .ConfigureOptions(o => o.MaxOutputTokens = null)
-            // .Build();
-
-            // var agent = chatClient.CreateAIAgent(
-            //     instructions: "Simply respond with 'Hello from Agent' without any additional markup or syntax.",
-            //     name: AgentName
-            // ).AsBuilder()
-            // .UseOpenTelemetry(
-            //     sourceName: AgentName,
-            //     configure: (cfg) => cfg.EnableSensitiveData = true)
-            // .Build();
-
-            var (agent, chatClient, logger) = InstrumentedAgents.Build<HelloAgent>(
+            var (agent, chatClient, logger, meter) = InstrumentedAgents.Build<HelloAgent>(
                 agentName: AgentName,
                 instructions: "Simply respond with 'Hello from Agent' without any additional markup, prefixes or suffixes, or syntax.",
                 model: "unsloth/gpt-oss-20b",
                 openAiApiKey: "no-key-needed",
                 activitySource: AgentActivitySource);
 
+            var agentStopwatch = Stopwatch.StartNew();
+
             // Send the chat prompt and get the response
             string request = "Hello, Agent";
             var response = await agent.RunAsync(request);
+
+            agentStopwatch.Stop();
+            var agentResponseTime = agentStopwatch.Elapsed.TotalSeconds;
 
             Console.WriteLine($"Agent response: {response}");
 
             IEvaluator eval = new EquivalenceEvaluator();
             // EquivalenceEvaluator needs ground truth provided via EquivalenceEvaluatorContext
-            var evaluatorContext = new EquivalenceEvaluatorContext("Hello from Agent");
+            var evaluatorContext = new EquivalenceEvaluatorContext("[Assistant] Hello from Agent");
+
+            var evalStopwatch = Stopwatch.StartNew();
 
             // EvaluateAsync with ground truth context (passed as a collection)
             EvaluationResult result = await eval.EvaluateAsync(
@@ -114,36 +69,37 @@ public class HelloAgent
                 [evaluatorContext]
             );
 
+            evalStopwatch.Stop();
+            var evalResponseTime = evalStopwatch.Elapsed.TotalSeconds;
+
             var metrics = result.Get<NumericMetric>(EquivalenceEvaluator.EquivalenceMetricName);
 
-            // Create a counter instrument
-            Histogram<int> equivalenceMeter = AgentMeter.CreateHistogram<int>("Equivalence");
+            // OTel metrics
+            var equivalenceRatingHistogram = meter.CreateHistogram<int>("Equivalence");
+            var agentResponseTimeHistogram = meter.CreateHistogram<double>("agent_response_time_seconds", description: "Agent response time in seconds");
+            var evalDurationHistogram = meter.CreateHistogram<double>("eval_duration_time", description: "Time taken to perform evaluation");
 
-            // Configure the OpenTelemetry MeterProvider
-            using var meterProvider = Sdk.CreateMeterProviderBuilder()
-                .AddMeter(Assembly.GetExecutingAssembly().FullName!)
-                .AddOtlpExporter((options) =>
-                {
-                    options.Endpoint = new Uri(otlpEndpoint);
-                    options.Protocol = OtlpExportProtocol.HttpProtobuf;
-                    options.Headers = $"projectName=katas";
-                })
-                .Build();
+            // Log OTel metrics
+            equivalenceRatingHistogram.Record((int)metrics.Interpretation.Rating);
+            agentResponseTimeHistogram.Record(agentResponseTime);
+            evalDurationHistogram.Record(evalResponseTime);
 
             // Standard assertions for Microsoft.Extensions.AI.Evaluation evaluators:
 
             // 1. Check that the evaluation didn't fail
             Assert.False(metrics.Interpretation!.Failed,
-                $"Equivalence evaluation failed: {metrics.Reason}");
+                $"Equivalence evaluation failed: {metrics.Reason}"); 
 
             // 2. Check the rating (if your LLM returns proper format, you'll get Good/Exceptional)
             Assert.True(metrics.Interpretation.Rating is
-                // Loosen the eval: EvaluationRating.Good or
+                EvaluationRating.Good or
                 EvaluationRating.Exceptional,
-                $"Unexpected rating: {metrics.Interpretation.Rating}. Reason: {metrics.Reason}");
+                $"Unexpected rating: {metrics.Interpretation.Rating}");
 
             // Optional: Check for diagnostics (may contain parsing issues with local LLM)
             Assert.False(metrics.ContainsDiagnostics(), "Evaluation produced diagnostic issues");
+
+            activity?.SetTag("success", "true");
         }
     }
 }
