@@ -144,6 +144,8 @@ cd opik
 
 ### Start the Opik platform
 
+> Note: you will need to have Docker/Colima/Podman installed to run the Opik platform. Also make sure you allocate at least 4 CPUs and 8GB of RAM to the Opik platform.
+
 ```bash
 ./opik.sh
 ```
@@ -192,6 +194,7 @@ export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 - [PydanticAI Documentation](https://ai.pydantic.dev/)
 - [Pydantic Evals Documentation](https://ai.pydantic.dev/evals/)
 - [Opik](https://www.comet.com/docs/opik/)
+- [MCP Documentation](https://modelcontextprotocol.io/docs/getting-started/intro)
 
 ## 🤝 Contributing
 
