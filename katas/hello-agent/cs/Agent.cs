@@ -16,17 +16,18 @@ using Microsoft.Extensions.AI.Evaluation.Quality;
 using System.Reflection;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Logs;
+using Thoughtworks.Katas.Agents;
 
-await new Agent().HelloAgent();
+await new HelloAgent().Run();
 
-public class Agent
+public class HelloAgent
 {
     private static string AgentName = "HelloAgent";
     private static readonly ActivitySource AgentActivitySource = new ActivitySource(AgentName);
     private static readonly Meter AgentMeter = new(AgentName, "1.0");
 
     [Fact]
-    public async Task HelloAgent()
+    public async Task Run()
     {
         // Configure Opik Open Telemetry endpoint
         string otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") ?? "http://localhost:5173/api/v1/private/otel/v1/traces";
@@ -51,42 +52,49 @@ public class Agent
         };
 
         // Configure OTel tracing
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(AgentName))
-            .AddSource(AgentName)
-            .AddSource("*Microsoft.Agents.AI") // Agent Framework telemetry
-            .AddHttpClientInstrumentation() // Capture HTTP calls to OpenAI
-            .AddOtlpExporter(otlpExporterOptions)
-            .Build();    
+        // using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+        //     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(AgentName))
+        //     .AddSource(AgentName)
+        //     .AddSource("*Microsoft.Agents.AI") // Agent Framework telemetry
+        //     .AddHttpClientInstrumentation() // Capture HTTP calls to OpenAI
+        //     .AddOtlpExporter(otlpExporterOptions)
+        //     .Build();    
 
         // Start an activity (span) with some tags (attributes)
         using (var activity = AgentActivitySource.StartActivity(AgentName))
         {
-            IChatClient chatClient = new OpenAIClient(
-                new ApiKeyCredential("no-key-required"),
-                new OpenAIClientOptions()
-                {
-                    Endpoint = new Uri(openAiApiEndpoint)
-                }
-            )
-            .GetChatClient(model)
-            .AsIChatClient()
-            // Override MaxOutputTokens to allow eval to work with reasoning models
-            .AsBuilder()
-            .UseOpenTelemetry(                  // Enable telemetry on chat client
-                sourceName: AgentName,
-                configure: (cfg) => cfg.EnableSensitiveData = true)
-            .ConfigureOptions(o => o.MaxOutputTokens = null)
-            .Build();
+            // IChatClient chatClient = new OpenAIClient(
+            //     new ApiKeyCredential("no-key-required"),
+            //     new OpenAIClientOptions()
+            //     {
+            //         Endpoint = new Uri(openAiApiEndpoint)
+            //     }
+            // )
+            // .GetChatClient(model)
+            // .AsIChatClient()
+            // // Override MaxOutputTokens to allow eval to work with reasoning models
+            // .AsBuilder()
+            // .UseOpenTelemetry(                  // Enable telemetry on chat client
+            //     sourceName: AgentName,
+            //     configure: (cfg) => cfg.EnableSensitiveData = true)
+            // .ConfigureOptions(o => o.MaxOutputTokens = null)
+            // .Build();
 
-            var agent = chatClient.CreateAIAgent(
-                instructions: "Simply respond with 'Hello from Agent' without any additional markup or syntax.",
-                name: AgentName
-            ).AsBuilder()
-            .UseOpenTelemetry(
-                sourceName: AgentName,
-                configure: (cfg) => cfg.EnableSensitiveData = true)
-            .Build();
+            // var agent = chatClient.CreateAIAgent(
+            //     instructions: "Simply respond with 'Hello from Agent' without any additional markup or syntax.",
+            //     name: AgentName
+            // ).AsBuilder()
+            // .UseOpenTelemetry(
+            //     sourceName: AgentName,
+            //     configure: (cfg) => cfg.EnableSensitiveData = true)
+            // .Build();
+
+            var (agent, chatClient, logger) = InstrumentedAgents.Build<HelloAgent>(
+                agentName: AgentName,
+                instructions: "Simply respond with 'Hello from Agent' without any additional markup, prefixes or suffixes, or syntax.",
+                model: "unsloth/gpt-oss-20b",
+                openAiApiKey: "no-key-needed",
+                activitySource: AgentActivitySource);
 
             // Send the chat prompt and get the response
             string request = "Hello, Agent";
@@ -136,7 +144,6 @@ public class Agent
 
             // Optional: Check for diagnostics (may contain parsing issues with local LLM)
             Assert.False(metrics.ContainsDiagnostics(), "Evaluation produced diagnostic issues");
-
         }
     }
 }

@@ -17,13 +17,14 @@ namespace Thoughtworks.Katas.Agents;
 
 public static class InstrumentedAgents
 {
-    public static (Microsoft.Agents.AI.AIAgent, ILogger) Build<T>(
+    public static (Microsoft.Agents.AI.AIAgent, Microsoft.Extensions.AI.IChatClient, ILogger) Build<T>(
         string agentName = "AIAgent",
-        string openAiApiEndpoint = "https://api.openai.com/v1",
+        string openAiApiEndpoint = "http://localhost:1234/v1", // For OpenAI API: "https://api.openai.com/v1",
         string openAiApiKey = "",
         string model = "gpt-4o",
         string instructions = "You are a helpful assistant that provides concise and informative responses.",
         IList<AITool>? tools = default(List<AITool>),
+        ActivitySource activitySource = null,
         string telemetryEndpoint = "http://localhost:5173/api/v1/private/otel/v1/traces", // Opik endpoint
         string telemetryProjectName = "katas"
     )
@@ -41,9 +42,8 @@ public static class InstrumentedAgents
         };
         // Build the providers for exporting traces and metrics to the OTel endpoint
         var resource = BuildResourceProfile(ServiceName);
-        var traceProvider = BuildTraceProvider(SourceName, ServiceName, otlpExporterOptions);
-        var meterProvider = BuildMeterProvider(SourceName, ServiceName, otlpExporterOptions);
-
+        var traceProvider = BuildTraceProvider(SourceName, agentName, otlpExporterOptions);
+        var meterProvider = BuildMeterProvider(SourceName, agentName, otlpExporterOptions);
 
         // Setup structured logging with OpenTelemetry
         var serviceCollection = new ServiceCollection();
@@ -53,7 +53,6 @@ public static class InstrumentedAgents
         var appLogger = loggerFactory.CreateLogger<T>();
 
         // Configure Metrics
-        using var activitySource = new ActivitySource(SourceName);
         using var meter = new Meter(SourceName);
 
         var interactionCounter = meter.CreateCounter<int>("agent_interactions_total", description: "Total number of agent interactions");
@@ -88,7 +87,7 @@ public static class InstrumentedAgents
             .UseOpenTelemetry(SourceName, configure: (cfg) => cfg.EnableSensitiveData = true) // enable telemetry at the agent level
             .Build();
 
-        return (agent, appLogger);
+        return (agent, instrumentedChatClient, appLogger);
 
         // var thread = agent.GetNewThread();
 
@@ -209,15 +208,15 @@ public static class InstrumentedAgents
     }
 
     private static MeterProvider BuildMeterProvider(
-        string SourceName, 
-        string ServiceName, 
+        string sourceName,
+        string agentName,
         Action<OtlpExporterOptions> configureOtlpExporterOptions)
     {
 
         // Setup metrics with resource and instrument name filtering
         return Sdk.CreateMeterProviderBuilder()
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(ServiceName, serviceVersion: "1.0.0"))
-            .AddMeter(SourceName) // Our custom meter
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(agentName, serviceVersion: "1.0.0"))
+            .AddMeter(sourceName) // Our custom meter
             .AddMeter("*Microsoft.Agents.AI") // Agent Framework metrics
             .AddHttpClientInstrumentation() // HTTP client metrics
             .AddRuntimeInstrumentation() // .NET runtime metrics
@@ -226,15 +225,14 @@ public static class InstrumentedAgents
     }
 
     private static TracerProvider BuildTraceProvider(
-        string SourceName, 
-        string ServiceName,
+        string sourceName,
+        string agentName,
         Action<OtlpExporterOptions> configureExporterOptions)
     {
-
         // Setup tracing with resource
         return Sdk.CreateTracerProviderBuilder()
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(ServiceName, serviceVersion: "1.0.0"))
-            .AddSource(SourceName) // Our custom activity source
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(agentName, serviceVersion: "1.0.0"))
+            .AddSource(sourceName) // Our custom activity source
             .AddSource("*Microsoft.Agents.AI") // Agent Framework telemetry
             .AddHttpClientInstrumentation() // Capture HTTP calls to OpenAI
             .AddOtlpExporter(configureExporterOptions)
