@@ -22,4 +22,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Thoughtworks.Katas.Agents\Thoughtworks.Katas.Agents.csproj" />
+  </ItemGroup>
+
 </Project>
