@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.evaluation.RelevancyEvaluator;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.evaluation.EvaluationRequest;
 import org.springframework.ai.evaluation.EvaluationResponse;
@@ -28,7 +29,7 @@ class HelloTest {
 
     @Test
     void testThatHelloWorks() {
-        var response = hello.sayHello("Ricardo");
+        var response = hello.sayHello("My name is Ricardo");
         Assertions.assertThat(response).isNotNull();
         var text = response.getResult().getOutput().getText();
         LOG.info(text);
@@ -38,15 +39,27 @@ class HelloTest {
 
     @Test
     void testHelloEvaluation() {
-        String prompt = "Ricardo";
+        String prompt = "My name is Ricardo";
         var response = hello.sayHello(prompt);
         Assertions.assertThat(response).isNotNull();
         EvaluationRequest evaluationRequest = new EvaluationRequest(
                 prompt,
-                List.of(Document.builder().text("Hello Ricardo").build()), //TODO learn how to instruct the evaluator
+                List.of(Document
+                        .builder()
+                        .text("The expected greeting format is 'Hello' followed by the person's name")
+                        .build()
+                ), //TODO learn how to instruct the evaluator
                 response.getResult().getOutput().getText()
         );
-        RelevancyEvaluator evaluator = new RelevancyEvaluator(chatClientBuilder);
+        var template = PromptTemplate
+                .builder()
+                .template("The expected greeting format is 'Hello' followed by the person's name")
+                .build();
+        RelevancyEvaluator evaluator = RelevancyEvaluator
+                .builder()
+                .chatClientBuilder(chatClientBuilder)
+                .promptTemplate(template) //TODO learn how to instruct the evaluator
+                .build();
         EvaluationResponse evaluationResponse = evaluator.evaluate(evaluationRequest);
         LOG.info("Evaluation response: {}", evaluationResponse);
         assertThat(evaluationResponse.isPass()).isTrue();
