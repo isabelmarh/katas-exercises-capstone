@@ -22,7 +22,7 @@ await new HelloAgent().Run();
 
 public class HelloAgent
 {
-    private static string AgentName = "HelloAgent";
+    private static string AgentName = nameof(HelloAgent);
     private static readonly ActivitySource AgentActivitySource = new ActivitySource(AgentName);
 
     [Fact]
@@ -34,7 +34,7 @@ public class HelloAgent
         var openApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? "no-key-required";
         var model = Environment.GetEnvironmentVariable("OPENAI_API_MODEL") ?? "unsloth/gpt-oss-20b";
 
-        // Start an activity (span) with some tags (attributes)
+        // Start an activity
         using (var activity = AgentActivitySource.StartActivity(AgentName))
         {
             var (agent, chatClient, logger, meter) = InstrumentedAgents.Build<HelloAgent>(

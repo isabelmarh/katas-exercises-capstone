@@ -53,8 +53,6 @@ public static class InstrumentedAgents
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
         var appLogger = loggerFactory.CreateLogger<T>();
 
-
-
         // Create instrumented chat client
         using var instrumentedChatClient = new OpenAIClient(
             new ApiKeyCredential(openAiApiKey),
