@@ -140,7 +140,7 @@ public class CodeReviewAgent
         PerformStandardMetricAssertions(metric);
     }
 
-        public async Task GivenCodeWithPoorPractices_WhenTheAgentIsAskedToReviewIt_TheAgentFlagsTheIssues()
+    public async Task GivenCodeWithPoorPractices_WhenTheAgentIsAskedToReviewIt_TheAgentFlagsTheIssues()
     {
         var codeToReview = """
             public User CreateUser(string email, string name)

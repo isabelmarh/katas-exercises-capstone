@@ -24,7 +24,7 @@ public static class InstrumentedAgents
         string model = "gpt-4o",
         string instructions = "You are a helpful assistant that provides concise and informative responses.",
         IList<AITool>? tools = default(List<AITool>),
-        ActivitySource activitySource = null,
+        ActivitySource activitySource = default,
         string telemetryEndpoint = "http://localhost:5173/api/v1/private/otel/v1/traces", // Opik endpoint
         string telemetryProjectName = "katas"
     )
