@@ -1,5 +1,5 @@
 [project]
-name = "carbon-intensity-mcp"
+name = "elia-opendata"
 version = "0.1.0"
 description = "MCP server for UK carbon intensity data"
 requires-python = ">=3.12"
