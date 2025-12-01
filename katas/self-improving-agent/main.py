@@ -9,7 +9,7 @@ from pydantic_ai import Agent
 
 
 def get_instructions() -> str:
-    path = Path("katas/self-improving-agent/instructions.md")
+    path = Path(__file__).parent / "instructions.md"
     if path.exists():
         return path.read_text().strip()
     default = "Base instructions"
@@ -18,7 +18,7 @@ def get_instructions() -> str:
 
 
 def save_instructions(instructions: str) -> None:
-    Path("katas/self-improving-agent/instructions.md").write_text(instructions)
+    (Path(__file__).parent / "instructions.md").write_text(instructions)
 
 
 async def punctuate_agent(text: str) -> str:

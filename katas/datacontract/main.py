@@ -6,7 +6,7 @@ from pydantic_ai import Agent
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import EqualsExpected
 
-from open_data_contract import OpenDataContractStandardOdcs
+from katas.datacontract.open_data_contract import OpenDataContractStandardOdcs
 
 
 def main(unstructured_input: str) -> str:

@@ -127,7 +127,7 @@ def run(
         dataset, main_fn = agent_function_or_runner
         report = dataset.evaluate_sync(main_fn)
         console.print("[green]Evaluation complete![/green]")
-        report.print(include_input=True, include_output=True)
+        report.print(include_input=True, include_output=True, include_expected_output=True)
         return
 
     if kata.evals_file.stat().st_size == 0:
@@ -146,7 +146,7 @@ def run(
     report = dataset.evaluate_sync(run_agent)
 
     console.print("[green]Evaluation complete![/green]")
-    report.print(include_input=True, include_output=True)
+    report.print(include_input=True, include_output=True, include_expected_output=True)
 
 
 if __name__ == "__main__":

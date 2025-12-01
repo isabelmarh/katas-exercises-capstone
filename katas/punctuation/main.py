@@ -98,4 +98,4 @@ punctuation_dataset = Dataset[str, str, Any](
 
 if __name__ == "__main__":
     report = punctuation_dataset.evaluate_sync(main)
-    report.print()
+    report.print(include_expected_output=True)
