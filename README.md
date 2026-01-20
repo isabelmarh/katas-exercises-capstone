@@ -1,10 +1,12 @@
 # AI Agent Katas
 
-A collection of practice exercises (katas) for building and evaluating AI agents using [PydanticAI](https://ai.pydantic.dev/) and [pydantic-evals](https://pydantic-evals.pydantic.dev/).
+A collection of practice exercises (katas) for building and evaluating AI agents
+using [PydanticAI](https://ai.pydantic.dev/) and [pydantic-evals](https://pydantic-evals.pydantic.dev/).
 
 ## 🎯 What are AI Agent Katas?
 
-Katas are deliberate practice exercises that help you develop skills through repetition and refinement. These AI agent katas focus on:
+Katas are deliberate practice exercises that help you develop skills through repetition and refinement. These AI agent
+katas focus on:
 
 - Building autonomous agents that can reason and act
 - Evaluating agent performance with structured test cases
@@ -49,8 +51,10 @@ echo 'export GEMINI_API_KEY=$(op read "op://Private/GEMINI_API_KEY/credential")'
 echo 'export ANTHROPIC_API_KEY=$(op read "op://Private/ANTHROPIC_API_KEY/credential")' >> ~/.zshrc
 ```
 
-**N.B.:** If the 1Password desktop app is signed in to multiple accounts is necessary to add the `--account` flag to the commands.
-Otherwise, commands may accidentally be executed against the wrong account. The list the signed in accounts run `op account list`
+**N.B.:** If the 1Password desktop app is signed in to multiple accounts is necessary to add the `--account` flag to the
+commands.
+Otherwise, commands may accidentally be executed against the wrong account. The list the signed in accounts run
+`op account list`
 Example:
 
 ```bash
@@ -82,7 +86,8 @@ katas run
 
 ### Checking Setup
 
-Once the setup has been completed you can check your setup by running the `hello-agent` kata. To do this simply execute the following in a virtual environment:
+Once the setup has been completed you can check your setup by running the `hello-agent` kata. To do this simply execute
+the following in a virtual environment:
 
 ```bash
 # If not already done activate virtual environment
@@ -96,6 +101,7 @@ katas run hello-agent
 Here is an example of a simple agent that uses the PydanticAI Agent:
 
 #### Gemini
+
 ```python
 from pydantic_ai import Agent
 
@@ -106,6 +112,7 @@ agent = Agent(
 ```
 
 #### Claude
+
 ```python
 from pydantic_ai import Agent
 
@@ -124,31 +131,19 @@ The evaluation system uses [pydantic-evals](https://pydantic-evals.pydantic.dev/
 - Compare outputs against expected results
 - Generate detailed performance reports
 
-## 🔍 Observability using Opik
+## 🔍 Observability using Arize Phoenix
 
-[Opik](https://www.comet.com/docs/opik/) is a tool for monitoring and analyzing your AI agents.
+[Arize Phoenix](https://www.comet.com/docs/opik/): Is an open-source LLM tracing and evaluation platform.
+In context of this repo we are mainly interested in the tracing capabilities that allow us to trace requests made by our
+agents to LLMs and other tools.
+The traces can then be visualized in the Arize Phoenix web app.
 
-To use Opik, you will need to:
-
-### Clone the Opik repository
-
-```bash
-git clone https://github.com/comet-ml/opik.git`
-```
-
-### Navigate to the repository
+### Run Arize Phoenix Locally
 
 ```bash
-cd opik
+docker run -d -p 6006:6006 arizephoenix/phoenix:latest
 ```
 
-### Start the Opik platform
-
-> Note: you will need to have Docker/Colima/Podman installed to run the Opik platform. Also make sure you allocate at least 4 CPUs and 8GB of RAM to the Opik platform.
-
-```bash
-./opik.sh
-```
 
 ###  Python Tracing
 
@@ -158,8 +153,8 @@ Add the following to your agent:
 import os
 import logfire
 
-os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:5173/api/v1/private/otel"
-_ = logfire.configure(send_to_logfire=False, service_name="ai-lsp")
+os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:6006"
+_ = logfire.configure(send_to_logfire=False, service_name="agent-katas")
 logfire.instrument_pydantic_ai()
 logfire.instrument_httpx(capture_all=True)
 ```
@@ -185,7 +180,7 @@ dotnet add package OpenTelemetry.Instrumentation.Http
 And set the following environment variables:
 
 ```bash
-export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:5173/api/v1/private/otel/v1/traces
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:6006/v1/traces
 export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 ```
 
