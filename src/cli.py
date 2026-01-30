@@ -1,13 +1,78 @@
 from pathlib import Path
 
+import getpass
+import os
+import subprocess
 import typer
 from pydantic import BaseModel
 from pydantic_evals import Dataset
 from rich.console import Console
 from rich.table import Table
+from dotenv import load_dotenv
+load_dotenv()
 
 app = typer.Typer(no_args_is_help=True, help="Run evaluations for AI agent katas")
 console = Console()
+
+
+def _ensure_api_keys(required_keys: tuple[str, ...]) -> None:
+    missing = [key for key in required_keys if not os.getenv(key)]
+    if not missing:
+        return
+
+    console.print("[yellow]Missing API keys detected.[/yellow]")
+    for key in missing:
+        value = typer.prompt(f"Enter {key}", hide_input=True)
+        if not value:
+            console.print(f"[red]Error: {key} is required to continue.[/red]")
+            raise typer.Exit(1)
+        os.environ[key] = value
+
+
+def _read_env_lines(env_path: Path) -> list[str]:
+    if not env_path.exists():
+        return []
+    return env_path.read_text().splitlines()
+
+
+def _upsert_env_line(lines: list[str], key: str, value: str) -> tuple[list[str], bool]:
+    updated = False
+    found = False
+    new_lines: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            new_lines.append(line)
+            continue
+
+        prefix = ""
+        candidate = stripped
+        if stripped.startswith("export "):
+            prefix = "export "
+            candidate = stripped[len(prefix) :]
+
+        if candidate.startswith(f"{key}="):
+            found = True
+            existing_value = candidate.split("=", 1)[1]
+            if existing_value != value:
+                new_lines.append(f"{prefix}{key}={value}")
+                updated = True
+            else:
+                new_lines.append(line)
+            continue
+
+        new_lines.append(line)
+
+    if not found:
+        new_lines.append(f"{key}={value}")
+        updated = True
+
+    return new_lines, updated
+
+
+def _write_env_file(env_path: Path, lines: list[str]) -> None:
+    content = "\n".join(lines).rstrip("\n") + "\n"
+    env_path.write_text(content)
 
 
 class KataConfig(BaseModel):
@@ -89,6 +154,85 @@ def list_katas() -> None:
     console.print(table)
 
 
+@app.command("start")
+def onboard() -> None:
+    """Interactive setup for API keys."""
+    env_path = Path(".env")
+    lines = _read_env_lines(env_path)
+    updated = False
+
+    required_keys = ("GEMINI_API_KEY", "ANTHROPIC_API_KEY")
+
+
+    for key in required_keys:
+        value = os.getenv(key)
+        if not value:
+            value = typer.prompt(f"Enter {key}", hide_input=True)
+        if not value:
+            console.print(f"[red]Error: {key} is required to continue.[/red]")
+            raise typer.Exit(1)
+
+        lines, did_update = _upsert_env_line(lines, key, value)
+        updated = updated or did_update
+        os.environ[key] = value
+
+    
+
+    if updated or not env_path.exists():
+        _write_env_file(env_path, lines)
+        console.print(f"[green]Saved API keys to {env_path}[/green]")
+    else:
+        console.print("[green]API keys already configured.[/green]")
+
+    should_create_branch = typer.confirm("Create a git branch now?", default=True)
+    if not should_create_branch:
+        return
+
+    default_branch = f"user/{getpass.getuser()}"
+    branch_name = typer.prompt("Branch name", default=default_branch)
+    if not branch_name:
+        console.print("[red]Error: branch name is required.[/red]")
+        raise typer.Exit(1)
+
+    try:
+        subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError:
+        console.print("[yellow]Not a git repository; skipping branch creation.[/yellow]")
+        return
+
+    try:
+        current_branch = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+
+        if current_branch == branch_name:
+            console.print(f"[green]Already on branch {branch_name}.[/green]")
+            return
+
+        exists = subprocess.run(
+            ["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch_name}"],
+            capture_output=True,
+            text=True,
+        ).returncode == 0
+
+        if exists:
+            subprocess.run(["git", "checkout", branch_name], check=True)
+            console.print(f"[green]Switched to branch {branch_name}.[/green]")
+        else:
+            subprocess.run(["git", "checkout", "-b", branch_name], check=True)
+            console.print(f"[green]Created and switched to {branch_name}.[/green]")
+    except subprocess.CalledProcessError as exc:
+        console.print(f"[red]Git error while creating branch: {exc}[/red]")
+
+
 @app.command()
 def run(
     kata_name: str | None = typer.Argument(None, help="Name of the kata to run"),
@@ -124,7 +268,7 @@ def run(
 
     if has_inline_evals:
         console.print(f"[blue]Running inline evaluations for {kata.name}...[/blue]")
-        dataset, main_fn = agent_function_or_runner
+        dataset, main_fn = agent_function_or_runner 
         report = dataset.evaluate_sync(main_fn)
         console.print("[green]Evaluation complete![/green]")
         report.print(include_input=True, include_output=True, include_expected_output=True)
@@ -147,6 +291,52 @@ def run(
 
     console.print("[green]Evaluation complete![/green]")
     report.print(include_input=True, include_output=True, include_expected_output=True)
+
+
+@app.command()
+def assess(
+    project_path: Path | None = typer.Argument(
+        None, help="Path to the project directory to assess"
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output HTML file path (JSON will use same name with .json extension)",
+    ),
+    output_dir: Path = typer.Option(
+        "assessment_reports",
+        "--output-dir",
+        help="Base directory for assessment reports (default: assessment_reports)",
+    ),
+):
+    """Assess agent, MCP, RAG, or capstone projects and generate HTML/JSON reports."""
+    _ensure_api_keys(("GEMINI_API_KEY",))
+    from src.assessor.main import assess as assessor_assess
+
+    resolved_output_dir = output_dir
+    kind_normalized: str | None = None
+    if project_path is not None:
+        kind_candidates = {
+            "mcp_katas": "mcp",
+            "katas": "agent",
+            "rag": "rag",
+            "rag_katas": "rag",
+            "capstone": "capstone",
+        }
+        kind_normalized = next(
+            (kind_value for folder, kind_value in kind_candidates.items() if folder in project_path.parts),
+            None,
+        )
+
+    if kind_normalized is not None and kind_normalized in {"agent", "mcp", "rag", "capstone"}:
+        resolved_output_dir = output_dir / kind_normalized
+
+    assessor_assess(
+        project_path=project_path,
+        output=output,
+        output_dir=resolved_output_dir,
+    )
 
 
 if __name__ == "__main__":

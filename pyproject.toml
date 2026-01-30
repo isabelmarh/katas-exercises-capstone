@@ -25,7 +25,8 @@ text-check-evals ="katas.text_checker.evaluations:main"
 [tool.uv.workspace]
 members = [
   "katas/*/py",
-  "mcp_katas/*/py"
+  "mcp_katas/*/py",
+  "assessor",
 ]
 
 [build-system]
@@ -41,7 +42,6 @@ dev = [
 include = [
   "katas/*/py",
   "mcp_katas/*/py",
-  "src"
 ]
 
 

@@ -84,6 +84,30 @@ katas run <kata-name>
 katas run
 ```
 
+### Setup Command
+
+Run the interactive setup to configure API keys and optionally create a git branch:
+
+```bash
+katas start
+```
+
+
+### Assessing
+
+```bash
+# Interactive assessment (choose Agent/MCP/RAG/Capstone)
+katas assess
+
+# Assess agent or MCP katas by path
+katas assess katas
+katas assess mcp_katas
+
+# Assess a specific RAG or capstone project by path
+katas assess /path/to/rag-project
+katas assess /path/to/capstone
+```
+
 ### Checking Setup
 
 Once the setup has been completed you can check your setup by running the `hello-agent` kata. To do this simply execute
