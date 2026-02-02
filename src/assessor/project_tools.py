@@ -1,6 +1,19 @@
 from pathlib import Path
 
 
+def _find_nested_readme_dir(project_path: Path) -> Path | None:
+    """Return the sole child directory that contains a README, if unique."""
+    candidates: list[Path] = []
+    for child in project_path.iterdir():
+        if not child.is_dir() or child.name.startswith("."):
+            continue
+        if any((child / name).exists() for name in ["README.md", "README.txt", "readme.md", "README.rst"]):
+            candidates.append(child)
+    if len(candidates) == 1:
+        return candidates[0]
+    return None
+
+
 def search_code_content(project_path: Path, pattern: str, file_extension: str = ".py") -> list[dict[str, str]]:
     """Search for pattern in code files and return matches with context."""
     results = []
@@ -72,7 +85,11 @@ def get_project_structure(project_path: Path) -> dict[str, any]:
     test_files = [f for f in py_files if 'test' in f.name.lower()]
     structure["test_files_count"] = len(test_files)
     
-    structure["has_readme"] = any((project_path / name).exists() for name in ["README.md", "README.txt", "readme.md"])
+    structure["has_readme"] = any(
+        (project_path / name).exists() for name in ["README.md", "README.txt", "readme.md"]
+    )
+    if not structure["has_readme"]:
+        structure["has_readme"] = _find_nested_readme_dir(project_path) is not None
     structure["has_pyproject"] = (project_path / "pyproject.toml").exists()
     structure["has_requirements"] = (project_path / "requirements.txt").exists()
     
@@ -105,4 +122,10 @@ def read_readme(project_path: Path) -> str:
         readme = project_path / name
         if readme.exists():
             return readme.read_text()
+    nested_dir = _find_nested_readme_dir(project_path)
+    if nested_dir:
+        for name in ["README.md", "README.txt", "readme.md", "README.rst"]:
+            readme = nested_dir / name
+            if readme.exists():
+                return readme.read_text()
     return "No README found"
