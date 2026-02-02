@@ -1,9 +1,14 @@
 from pathlib import Path
+from datetime import datetime
+import csv
+import re
 
 import getpass
 import os
 import subprocess
 import typer
+import questionary
+import json
 from pydantic import BaseModel
 from pydantic_evals import Dataset
 from rich.console import Console
@@ -337,6 +342,307 @@ def assess(
         output=output,
         output_dir=resolved_output_dir,
     )
+
+
+def _safe_dir_name(value: str) -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9._-]+", "_", value.strip())
+    return cleaned or "branch"
+
+
+def _parse_branches_text(raw: str) -> list[str]:
+    tokens: list[str] = []
+    for line in raw.splitlines():
+        tokens.extend(line.split(","))
+    return [token.strip() for token in tokens if token.strip()]
+
+
+def _read_branch_entries_from_file(file_path: Path) -> list[dict[str, str]]:
+    if not file_path.exists():
+        console.print(f"[red]Branch file not found: {file_path}[/red]")
+        raise typer.Exit(1)
+
+    content = file_path.read_text().splitlines()
+    if not content:
+        console.print(f"[red]Branch file is empty: {file_path}[/red]")
+        raise typer.Exit(1)
+
+    if file_path.suffix.lower() == ".csv" or any("," in line for line in content[:3]):
+        entries: list[dict[str, str]] = []
+        reader = csv.reader(content)
+        for row in reader:
+            if not row:
+                continue
+            cleaned = [cell.strip() for cell in row if cell.strip()]
+            if not cleaned:
+                continue
+            header = ",".join(cleaned).lower()
+            if "branch" in header and ("github" in header or "id" in header):
+                continue
+            if len(cleaned) == 1:
+                entries.append({"branch": cleaned[0], "label": ""})
+            else:
+                entries.append({"label": cleaned[0], "branch": cleaned[1]})
+        return entries
+
+    branches = [line.strip() for line in content if line.strip()]
+    return [{"branch": branch, "label": ""} for branch in branches]
+
+
+def _git_ref_exists(repo_path: Path, ref: str) -> bool:
+    return (
+        subprocess.run(
+            ["git", "show-ref", "--verify", "--quiet", ref],
+            cwd=repo_path,
+            capture_output=True,
+        ).returncode
+        == 0
+    )
+
+
+def _write_plain_summary(rows: list[dict[str, str]]) -> str:
+    lines: list[str] = []
+    for row in rows:
+        parts = [
+            f"GitHub ID: {row.get('label', 'N/A')}",
+            f"Branch: {row.get('branch', 'N/A')}",
+            f"Completed: {row.get('completed', 'No')}",
+            f"Rating: {row.get('rating', 'N/A')}",
+            f"Report: {row.get('report', 'N/A')}",
+        ]
+        lines.append(" | ".join(parts))
+    return "\n".join(lines) + "\n"
+
+
+@app.command("admin")
+def admin() -> None:
+    """Interactive admin actions for cohort assessments."""
+    action = questionary.select(
+        "Admin action",
+        choices=[  
+            "Bulk assess branches (capstone only)",
+            "Exit",
+        ],
+    ).ask()
+    if action is None or action == "Exit":
+        return
+
+    repo_path_input = questionary.path(
+        "Git repo path",
+        default=str(Path.cwd()),
+    ).ask()
+    if not repo_path_input:
+        return
+    repo_path = Path(repo_path_input)
+
+    try:
+        subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            check=True,
+            capture_output=True,
+            cwd=repo_path,
+            text=True,
+        )
+    except subprocess.CalledProcessError:
+        console.print("[red]Not a git repository.[/red]")
+        raise typer.Exit(1)
+
+    branch_source = questionary.select(
+        "How will you provide branches?",
+        choices=["branches (comma-separated)", "Read from file"],
+    ).ask()
+    if branch_source is None:
+        return
+
+    entries: list[dict[str, str]]
+    if branch_source == "Read from file":
+        file_input = questionary.path(
+            "Path to branches file (txt or csv)",
+            default=str(repo_path / "branches.txt"),
+        ).ask()
+        if not file_input:
+            return
+        entries = _read_branch_entries_from_file(Path(file_input))
+    else:
+        raw = questionary.text(
+            "Enter branches (comma separated)",
+        ).ask()
+        if not raw:
+            return
+        entries = [{"branch": branch, "label": ""} for branch in _parse_branches_text(raw)]
+
+    if not entries:
+        console.print("[red]No branches provided.[/red]")
+        raise typer.Exit(1)
+
+    for entry in entries:
+        if entry.get("label"):
+            continue
+        branch = entry["branch"]
+        entry["label"] = branch
+
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    worktrees_base_input = questionary.path(
+        "Worktrees base directory",
+        default=str(repo_path / ".katas" / "admin-worktrees" / timestamp),
+    ).ask()
+    if not worktrees_base_input:
+        return
+    worktrees_base = Path(worktrees_base_input)
+    worktrees_base.mkdir(parents=True, exist_ok=True)
+
+    output_dir_input = questionary.path(
+        "Report output directory",
+        default=str(repo_path / "exports" / f"cohort_{timestamp}"),
+    ).ask()
+    if not output_dir_input:
+        return
+    output_dir = Path(output_dir_input)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    proceed = questionary.confirm(
+        f"Assess {len(entries)} branches and save reports to {output_dir}?",
+        default=True,
+    ).ask()
+    if not proceed:
+        return
+
+    subprocess.run(["git", "fetch", "--all", "--prune"], cwd=repo_path, check=True)
+
+    from src.assessor.main import CAPSTONE_ASSESS_PROMPT, ensure_api_keys
+    from src.assessor.agent import assessment_agent
+    from src.assessor.html_generator import generate_html_report
+
+    ensure_api_keys()
+
+    summary_rows: list[dict[str, str]] = []
+    worktree_paths: list[Path] = []
+    used_names: set[str] = set()
+
+    for entry in entries:
+        branch = entry["branch"]
+        label = entry["label"]
+        safe_label = _safe_dir_name(label)
+        if safe_label in used_names:
+            safe_label = f"{safe_label}_{len(used_names) + 1}"
+        used_names.add(safe_label)
+
+        worktree_path = worktrees_base / safe_label
+        worktree_paths.append(worktree_path)
+
+        remote_ref = branch if branch.startswith("origin/") else f"origin/{branch}"
+        ref = remote_ref if _git_ref_exists(repo_path, f"refs/remotes/{remote_ref}") else branch
+
+        try:
+            subprocess.run(
+                ["git", "worktree", "add", str(worktree_path), ref],
+                cwd=repo_path,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as exc:
+            console.print(f"[red]Failed to add worktree for {branch}: {exc}[/red]")
+            summary_rows.append(
+                {
+                    "label": label,
+                    "branch": branch,
+                    "completed": "No",
+                    "rating": "ERROR",
+                    "report": "N/A",
+                }
+            )
+            continue
+            
+        capstone_path = worktree_path / "capstone"
+        if not capstone_path.exists():
+            summary_rows.append(
+                {
+                    "label": label,
+                    "branch": branch,
+                    "completed": "No",
+                    "rating": "N/A",
+                    "report": "N/A",
+                }
+            )
+            continue
+
+        console.print(f"[cyan]Assessing {label} ({branch})...[/cyan]")
+        try:
+            result = assessment_agent.run_sync(CAPSTONE_ASSESS_PROMPT, deps=capstone_path)
+            assessment = result.output
+            student_dir = output_dir / safe_label
+            student_dir.mkdir(parents=True, exist_ok=True)
+            html_path = student_dir / "capstone_assessment.html"
+            html_path.write_text(generate_html_report(assessment, label))
+
+            json_path = student_dir / "capstone_assessment.json"
+            json_data = assessment.model_dump(mode="json")
+            json_data.pop("overall_score", None)
+            json_path.write_text(json.dumps(json_data, indent=2))
+
+            summary_rows.append(
+                {
+                    "label": label,
+                    "branch": branch,
+                    "completed": "Yes",
+                    "rating": assessment.overall_rating.value,
+                    "report": str(html_path.absolute()),
+                }
+            )
+        except Exception as exc:
+            console.print(f"[red]Assessment failed for {label}: {exc}[/red]")
+            summary_rows.append(
+                {
+                    "label": label,
+                    "branch": branch,
+                    "completed": "No",
+                    "rating": "ERROR",
+                    "report": "N/A",
+                }
+            )
+
+    table = Table(show_header=True, header_style="bold cyan")
+    table.add_column("GitHub ID", style="bold")
+    table.add_column("Branch")
+    table.add_column("Completed")
+    table.add_column("Rating")
+    table.add_column("Report")
+    for row in summary_rows:
+        table.add_row(
+            row.get("label", "N/A"),
+            row.get("branch", "N/A"),
+            row.get("completed", "No"),
+            row.get("rating", "N/A"),
+            row.get("report", "N/A"),
+        )
+    console.print(table)
+
+    save_summary = questionary.confirm("Save summary table to a text file?", default=True).ask()
+    if save_summary:
+        default_path = output_dir / "cohort_summary.txt"
+        summary_path = questionary.text(
+            "Summary file path",
+            default=str(default_path),
+        ).ask()
+        if summary_path:
+            Path(summary_path).write_text(_write_plain_summary(summary_rows))
+            console.print(f"[green]Saved summary to {summary_path}[/green]")
+
+    cleanup = questionary.confirm("Remove worktrees now?", default=True).ask()
+    if cleanup:
+        for path in worktree_paths:
+            try:
+                subprocess.run(
+                    ["git", "worktree", "remove", str(path)],
+                    cwd=repo_path,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+            except subprocess.CalledProcessError:
+                console.print(f"[yellow]Could not remove worktree: {path}[/yellow]")
+        subprocess.run(["git", "worktree", "prune"], cwd=repo_path, check=True)
 
 
 if __name__ == "__main__":

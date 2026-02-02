@@ -8,7 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
-
+.katas/
+exports/
 # Jetbrains
 .idea
 
