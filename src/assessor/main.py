@@ -444,7 +444,7 @@ def _run_targets(
                 assessment, target.display_name, report_dir
             )
             console.print("[bold green]✓[/bold green] Assessment complete!")
-            console.print("[bold]Overall Rating:[/bold] N/A (feedback-only report)")
+            # console.print("[bold]Overall Rating:[/bold] N/A (feedback-only report)")
             console.print(f"[cyan]HTML report:[/cyan] {html_path.absolute()}")
             console.print(f"[cyan]JSON data:[/cyan] {json_path.absolute()}\n")
         else:
