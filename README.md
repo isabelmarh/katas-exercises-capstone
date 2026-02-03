@@ -3,7 +3,7 @@
 A collection of practice exercises (katas) for building and evaluating AI agents
 using [PydanticAI](https://ai.pydantic.dev/) and [pydantic-evals](https://pydantic-evals.pydantic.dev/).
 
-## 🎯 What are AI Agent Katas?
+## What are AI Agent Katas?
 
 Katas are deliberate practice exercises that help you develop skills through repetition and refinement. These AI agent
 katas focus on:
@@ -13,7 +13,7 @@ katas focus on:
 - Iterating on agent design based on evaluation results
 - Learning different AI agent patterns and architectures
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Install uv
 
@@ -122,7 +122,7 @@ agent = Agent(
 )
 ```
 
-## 🧪 Evaluation Framework
+## Evaluation Framework
 
 The evaluation system uses [pydantic-evals](https://pydantic-evals.pydantic.dev/) to:
 
@@ -131,67 +131,46 @@ The evaluation system uses [pydantic-evals](https://pydantic-evals.pydantic.dev/
 - Compare outputs against expected results
 - Generate detailed performance reports
 
-## 🔍 Observability using Arize Phoenix
+## Observability with Arize Phoenix
 
-[Arize Phoenix](https://www.comet.com/docs/opik/): Is an open-source LLM tracing and evaluation platform.
-In context of this repo we are mainly interested in the tracing capabilities that allow us to trace requests made by our
-agents to LLMs and other tools.
-The traces can then be visualized in the Arize Phoenix web app.
+[Arize Phoenix](https://arize.com/docs/phoenix/) is an open-source LLM observability platform. Use it to trace requests made by your agents to LLMs and tools.
 
-### Run Arize Phoenix Locally
+### Run Phoenix Locally
 
 ```bash
-docker run -d -p 6006:6006 arizephoenix/phoenix:latest
+uvx arize-phoenix serve
 ```
 
+Phoenix will be available at http://127.0.0.1:6006.
 
-###  Python Tracing
+### Add Tracing to Your Agent
 
-Add the following to your agent:
+Install the dependencies:
+
+```bash
+pip install arize-phoenix-otel openinference-instrumentation-pydantic-ai
+```
+
+Add this to your agent file (before creating any agents):
 
 ```python
-import os
-import logfire
+from phoenix.otel import register
 
-os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:6006"
-_ = logfire.configure(send_to_logfire=False, service_name="agent-katas")
-logfire.instrument_pydantic_ai()
-logfire.instrument_httpx(capture_all=True)
+register(project_name="agent-katas", auto_instrument=True)
 ```
 
-### 󰪮 .NET Tracing
+Run your agent, then open http://127.0.0.1:6006 to see traces.
 
-Add the following to your agent:
+For more setup options (manual OpenTelemetry configuration, understanding the internals), see [arize_phoenix_setup.md](arize_phoenix_setup.md).
 
-```csharp
-# Agent Framework (2 packages)
-dotnet add package Microsoft.Agents.AI --prerelease
-dotnet add package Microsoft.Extensions.AI.OpenAI --prerelease
-
-# Hosting (1 package)
-dotnet add package Microsoft.Extensions.Hosting
-
-# OpenTelemetry (3 packages)
-dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
-dotnet add package OpenTelemetry.Extensions.Hosting
-dotnet add package OpenTelemetry.Instrumentation.Http
-```
-
-And set the following environment variables:
-
-```bash
-export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:6006/v1/traces
-export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
-```
-
-## 📖 Learning Resources
+## Learning Resources
 
 - [PydanticAI Documentation](https://ai.pydantic.dev/)
 - [Pydantic Evals Documentation](https://ai.pydantic.dev/evals/)
-- [Opik](https://www.comet.com/docs/opik/)
+- [Arize Phoenix](https://arize.com/docs/phoenix/)
 - [MCP Documentation](https://modelcontextprotocol.io/docs/getting-started/intro)
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please:
 
@@ -201,10 +180,7 @@ Contributions are welcome! Please:
 4. Ensure all evaluations pass
 5. Submit a pull request
 
-## 📄 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
----
-
-**Happy coding! 🎉**
