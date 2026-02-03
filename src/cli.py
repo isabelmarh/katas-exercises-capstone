@@ -412,8 +412,8 @@ def _write_plain_summary(rows: list[dict[str, str]]) -> str:
     return "\n".join(lines) + "\n"
 
 
-@app.command("admin")
-def admin() -> None:
+@app.command("bulk-assess")
+def bulk_assess() -> None:
     """Interactive admin actions for cohort assessments."""
     action = questionary.select(
         "Admin action",
