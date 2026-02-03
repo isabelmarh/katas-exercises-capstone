@@ -403,7 +403,6 @@ def _write_plain_summary(rows: list[dict[str, str]]) -> str:
     lines: list[str] = []
     for row in rows:
         parts = [
-            f"GitHub ID: {row.get('label', 'N/A')}",
             f"Branch: {row.get('branch', 'N/A')}",
             f"Completed: {row.get('completed', 'No')}",
             f"Rating: {row.get('rating', 'N/A')}",
@@ -603,7 +602,6 @@ def admin() -> None:
             )
 
     table = Table(show_header=True, header_style="bold cyan")
-    table.add_column("GitHub ID", style="bold")
     table.add_column("Branch")
     table.add_column("Completed")
     table.add_column("Rating")
