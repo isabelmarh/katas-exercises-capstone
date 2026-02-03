@@ -497,3 +497,9 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# direnv
+.envrc
+
+#AI Assistants
+CLAUDE.md
