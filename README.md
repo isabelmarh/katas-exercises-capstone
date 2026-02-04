@@ -135,38 +135,16 @@ The evaluation system uses [pydantic-evals](https://pydantic-evals.pydantic.dev/
 
 [Arize Phoenix](https://arize.com/docs/phoenix/) is an open-source LLM observability platform. Use it to trace requests made by your agents to LLMs and tools.
 
-### Run Phoenix Locally
+### Quick Start
 
-```bash
-uvx arize-phoenix serve
-```
+1. Run Phoenix locally:
+   ```bash
+   uvx arize-phoenix serve
+   ```
 
-Phoenix will be available at http://127.0.0.1:6006.
+2. Open http://127.0.0.1:6006 to see the Phoenix UI.
 
-### Add Tracing to Your Agent
-
-Install the dependency:
-
-```bash
-pip install arize-phoenix-otel
-```
-
-Add this to your agent file (before creating any agents):
-
-```python
-from phoenix.otel import register
-from pydantic_ai import Agent
-
-register(
-    project_name="agent-katas",
-    endpoint="http://127.0.0.1:6006/v1/traces",
-)
-Agent.instrument_all()
-```
-
-Run your agent, then open http://127.0.0.1:6006 to see traces.
-
-> **Want richer traces?** This setup uses standard OpenTelemetry conventions. For enhanced Phoenix visualizations with OpenInference semantic conventions, as well as additional config options for the OpenTelemetry approach, see the [detailed setup guide](arize_phoenix_setup.md).
+3. Follow the [Phoenix setup guide](arize_phoenix_setup.md) to add tracing to your agents.
 
 ## Learning Resources
 
