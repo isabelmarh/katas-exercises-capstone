@@ -138,11 +138,12 @@ The evaluation system uses [pydantic-evals](https://pydantic-evals.pydantic.dev/
 ### Quick Start
 
 1. Run Phoenix locally:
+
    ```bash
    uvx arize-phoenix serve
    ```
 
-2. Open http://127.0.0.1:6006 to see the Phoenix UI.
+2. Open <http://127.0.0.1:6006> to see the Phoenix UI.
 
 3. Follow the [Phoenix setup guide](arize_phoenix_setup.md) to add tracing to your agents.
 
@@ -155,15 +156,11 @@ The evaluation system uses [pydantic-evals](https://pydantic-evals.pydantic.dev/
 
 ## Contributing
 
-Contributions are welcome! Please:
+Contributions are welcome!
 
-1. Fork the repository
-2. Create a feature branch
-3. Add your kata or improvements
-4. Ensure all evaluations pass
-5. Submit a pull request
+>[!NOTE]
+>Solutions are not contributions!
 
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
-
