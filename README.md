@@ -156,10 +156,10 @@ The evaluation system uses [pydantic-evals](https://pydantic-evals.pydantic.dev/
 
 ## Contributing
 
-Contributions are welcome!
+Contributions are welcome! If you have ideas for Katas or improvements to the CLI please reach out to the maintainers!
 
->[!NOTE]
->Solutions are not contributions!
+>[!WARNING]
+>Assignment solutions are not contributions! Do not push these to main, we will make fun of you for it.
 
 ## License
 
