@@ -145,23 +145,28 @@ Phoenix will be available at http://127.0.0.1:6006.
 
 ### Add Tracing to Your Agent
 
-Install the dependencies:
+Install the dependency:
 
 ```bash
-pip install arize-phoenix-otel openinference-instrumentation-pydantic-ai
+pip install arize-phoenix-otel
 ```
 
 Add this to your agent file (before creating any agents):
 
 ```python
 from phoenix.otel import register
+from pydantic_ai import Agent
 
-register(project_name="agent-katas", auto_instrument=True)
+register(
+    project_name="agent-katas",
+    endpoint="http://127.0.0.1:6006/v1/traces",
+)
+Agent.instrument_all()
 ```
 
 Run your agent, then open http://127.0.0.1:6006 to see traces.
 
-For more setup options (manual OpenTelemetry configuration, understanding the internals), see [arize_phoenix_setup.md](arize_phoenix_setup.md).
+> **Want richer traces?** This setup uses standard OpenTelemetry conventions. For enhanced Phoenix visualizations with OpenInference semantic conventions, as well as additional config options for the OpenTelemetry approach, see the [detailed setup guide](arize_phoenix_setup.md).
 
 ## Learning Resources
 

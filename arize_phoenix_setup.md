@@ -4,7 +4,9 @@
 
 This guide walks you through setting up **Arize Phoenix**, an open-source AI observability platform, to monitor and debug your PydanticAI agents. By the end, you'll have traces flowing from your agents into Phoenix for visualization and debugging.
 
-We present two quick-start approaches (choose based on your needs) and a manual setup section for those who want to understand the underlying machinery.
+We present two approaches:
+- **Standard OTel** (recommended) — Simple setup, portable to any OpenTelemetry backend
+- **Manual + OpenInference** — More code, but richer Phoenix visualizations
 
 ---
 
@@ -41,50 +43,46 @@ Both work with Phoenix. OpenInference unlocks additional features but ties you t
 
 ---
 
-## Which Approach Should I Use?
-
-| Approach | When to Use |
-|----------|-------------|
-| **Quick Start: OpenInference** | You want the richest Phoenix experience and don't need portability to other backends |
-| **Quick Start: Standard OTel** | You want portability, or prefer fewer dependencies |
-| **Manual Setup** | You want to understand the internals, or need custom configuration |
-
-**Our recommendation**: Start with **Quick Start: OpenInference** for the best Phoenix experience. If you later need portability, switching to Standard OTel is straightforward.
-
----
-
 ## Running Phoenix
 
 Regardless of which approach you choose, you need Phoenix running to receive traces.
 
-**Quickest option** (using uvx):
+**Recommended option** (using uvx):
+We don't actually need Phoenix installed into our agent's virtual environment; we just need to it to run as a standalone service, which means using `uv`'s uvx command is perfect. It will lauch the provided command in a standalone virtual environment, which it creates automatically for you. 
+
 ```bash
 uvx arize-phoenix serve
 ```
 
 **Alternative** (using pip):
+If for some reason you want to manually install Pheonix into a specific virtual environment, you can do the following: 
+
 ```bash
-pip install arize-phoenix
-python -m phoenix.server.main serve
+uv pip install arize-phoenix
+uv run arize-phoenix serve
 ```
 
 **Alternative** (using Docker):
+If you have a docker service running on your machine, you can also launch Phoenix like so:
+
 ```bash
 docker run -d -p 6006:6006 arizephoenix/phoenix:latest
 ```
 
-Phoenix will be available at **http://127.0.0.1:6006**. Open this in your browser to see the UI.
+### Accessing Phoenix
+
+After completing one of the above steps, Phoenix will be available at **http://127.0.0.1:6006**. Open this in your browser to see the UI.
 
 ---
 
-## Quick Start: OpenInference
+## Option 1: Standard OTel (Recommended)
 
-This approach gives you the richest Phoenix experience with automatic instrumentation.
+This approach uses industry-standard OpenTelemetry semantic conventions (OTel GenAI). Traces work with Phoenix and any other OTel-compatible backend (Jaeger, Datadog, Honeycomb, etc.).
 
 ### Install Dependencies
 
 ```bash
-pip install pydantic-ai arize-phoenix-otel openinference-instrumentation-pydantic-ai
+uv pip install arize-phoenix-otel
 ```
 
 ### Configure Tracing
@@ -93,7 +91,10 @@ pip install pydantic-ai arize-phoenix-otel openinference-instrumentation-pydanti
 from phoenix.otel import register
 from pydantic_ai import Agent
 
-register(project_name="my-app", auto_instrument=True)
+register(
+    project_name="my-app",
+    endpoint="http://127.0.0.1:6006/v1/traces",
+)
 Agent.instrument_all()
 ```
 
@@ -101,12 +102,8 @@ Here's what's happening:
 
 - **`register()`** sets up a TracerProvider, SpanProcessor, and Exporter with sensible defaults
 - **`project_name`** labels your traces in Phoenix for easy filtering
-- **`auto_instrument=True`** registers the OpenInference span processor to enrich traces with Arize-specific attributes
-- **`Agent.instrument_all()`** enables PydanticAI to emit traces (required — see note below)
-
-> **Note:** Unlike other OpenInference packages (OpenAI, LangChain) which auto-patch their libraries, the PydanticAI package is a *span processor* that enriches existing spans. You must explicitly enable PydanticAI's instrumentation via `Agent.instrument_all()` or by passing `instrument=True` to individual agents.
-
-By default, traces are sent to `http://127.0.0.1:6006`.
+- **`endpoint`** specifies the Phoenix OTLP HTTP endpoint (include `/v1/traces` path)
+- **`Agent.instrument_all()`** enables PydanticAI to emit traces
 
 ### Complete Example
 
@@ -116,7 +113,10 @@ from phoenix.otel import register
 from pydantic_ai import Agent
 
 # Configure tracing (must be called before creating agents)
-register(project_name="weather-app", auto_instrument=True)
+register(
+    project_name="weather-app",
+    endpoint="http://127.0.0.1:6006/v1/traces",
+)
 Agent.instrument_all()
 
 # Create your agent
@@ -145,127 +145,89 @@ Run this, then open http://127.0.0.1:6006 to see your trace.
 ```python
 register(
     project_name="my-app",
-    endpoint="http://127.0.0.1:6006/v1/traces",  # Custom endpoint
-    auto_instrument=True,
+    endpoint="http://127.0.0.1:6006/v1/traces",
     batch=True,  # Batch spans for better performance (slight delay)
 )
 ```
 
-You can also configure the endpoint via environment variable:
+You can also configure the endpoint via environment variable (note: use the base URL without `/v1/traces`—the SDK appends the path automatically):
 ```bash
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:6006
 ```
 
 ---
 
-## Quick Start: Standard OTel
+## Option 2: Manual + OpenInference
 
-This approach uses industry-standard OpenTelemetry semantic conventions (OTel GenAI). Traces work with Phoenix and any other OTel-compatible backend (Jaeger, Datadog, Honeycomb, etc.) — no Arize-specific dependencies.
+This approach gives you the richest Phoenix experience with OpenInference semantic conventions. It requires manual TracerProvider setup but provides enhanced visualizations, conversation threading, and session attribution.
 
 ### Install Dependencies
 
 ```bash
-pip install pydantic-ai arize-phoenix-otel
+uv pip install opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-pydantic-ai
 ```
 
-### Configure Tracing
+### Complete Example
 
 ```python
-from phoenix.otel import register
-from pydantic_ai import Agent
-
-register(project_name="my-app")
-Agent.instrument_all()
-```
-
-Key differences from the OpenInference approach:
-- No `auto_instrument=True` (we're not using OpenInference)
-- Explicit `Agent.instrument_all()` enables PydanticAI's native instrumentation
-
-The rest of your code (agent creation, tools, etc.) remains identical to the OpenInference example above.
-
----
-
-## Manual Setup
-
-This section shows how to configure OpenTelemetry explicitly. Use this if you want to:
-- Understand what the quick-start helpers abstract away
-- Customize the configuration (custom Resource, multiple processors, etc.)
-- Learn transferable OTel skills that work with any backend
-
-### Base Configuration (Standard OTel)
-
-Create a `tracing.py` module:
-
-```python
+import asyncio
+from openinference.instrumentation.pydantic_ai import OpenInferenceSpanProcessor
+from openinference.semconv.resource import ResourceAttributes
 from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor, BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from pydantic_ai import Agent
 
-_initialized = False
 
-def init_tracing(
-    endpoint: str = "http://127.0.0.1:6006/v1/traces",
-    service_name: str = "pydantic-ai-app",
-    batch: bool = False,
-) -> None:
-    """Initialize OpenTelemetry tracing to send spans to Phoenix."""
-    global _initialized
-    if _initialized:
-        return
-
-    # Resource identifies this service in traces
-    resource = Resource.create({"service.name": service_name})
-
-    # TracerProvider is the central configuration object
+def init_telemetry(project_name: str | None = None) -> None:
+    """Initialize OpenTelemetry tracing with OpenInference for Phoenix."""
+    # Create and register a TracerProvider (project_name appears in Phoenix UI)
+    resource = Resource.create({ResourceAttributes.PROJECT_NAME: project_name}) if project_name else None
     tracer_provider = TracerProvider(resource=resource)
-
-    # Exporter sends spans to Phoenix via OTLP
-    exporter = OTLPSpanExporter(endpoint=endpoint)
-
-    # Choose processor based on use case (see note below)
-    if batch:
-        tracer_provider.add_span_processor(BatchSpanProcessor(exporter))
-    else:
-        tracer_provider.add_span_processor(SimpleSpanProcessor(exporter))
-
-    # Register as the global tracer provider
     trace.set_tracer_provider(tracer_provider)
 
-    _initialized = True
+    # Enrich spans with OpenInference attributes (must be added before exporter)
+    tracer_provider.add_span_processor(OpenInferenceSpanProcessor())
+
+    # Export spans to Phoenix
+    tracer_provider.add_span_processor(SimpleSpanProcessor(
+        OTLPSpanExporter(endpoint="http://127.0.0.1:6006/v1/traces")
+    ))
+
+    # Enable PydanticAI instrumentation
+    Agent.instrument_all()
+
+
+init_telemetry(project_name="weather-app")
+
+agent = Agent(
+    "anthropic:claude-sonnet-4-5",
+    instructions="You are a helpful weather assistant.",
+)
+
+@agent.tool
+def get_weather(city: str) -> str:
+    """Get the current weather for a city."""
+    return f"The weather in {city} is sunny and 22°C"
+
+async def main():
+    result = await agent.run("What's the weather in Melbourne?")
+    print(result.output)
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-**SimpleSpanProcessor vs BatchSpanProcessor:**
+Run this, then open http://127.0.0.1:6006 to see your trace.
 
-| Processor | Behavior | Use When |
-|-----------|----------|----------|
-| `SimpleSpanProcessor` | Exports each span immediately | Learning, debugging, development — traces appear instantly in Phoenix |
-| `BatchSpanProcessor` | Buffers spans and exports in batches | Production — more efficient, but slight delay before traces appear |
+**Key points:**
+- The `project_name` parameter sets the Phoenix project name (via OpenInference `ResourceAttributes.PROJECT_NAME`)
+- Add `OpenInferenceSpanProcessor` *before* `SimpleSpanProcessor` — processors run in order, so enrichment must happen before export
+- Use `BatchSpanProcessor` instead of `SimpleSpanProcessor` in production for better performance (spans are buffered, so there's a slight delay before they appear)
 
-For this guide, we default to `SimpleSpanProcessor` so you get immediate feedback. In production, pass `batch=True` for better performance.
-
-Use it in your application by replacing the tracing setup from the Quick Start examples:
-
-```python
-from tracing import init_tracing
-
-# Initialize tracing BEFORE creating agents
-init_tracing(service_name="weather-app")
-
-# Enable PydanticAI's native instrumentation
-Agent.instrument_all()
-
-# ... rest of your agent code (same as Quick Start examples)
-```
-
-**Dependencies:**
-```bash
-pip install pydantic-ai opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp
-```
-
-**Graceful shutdown (production):**
+### Graceful Shutdown (Production)
 
 When using `BatchSpanProcessor`, spans are buffered in memory. If your application exits abruptly, buffered spans may be lost. To ensure all traces are exported before shutdown:
 
@@ -280,60 +242,7 @@ if hasattr(tracer_provider, 'shutdown'):
 
 This isn't needed with `SimpleSpanProcessor` since spans are exported immediately.
 
-### Adding OpenInference (Optional)
-
-To get richer Phoenix visualizations, add the OpenInference span processor. This enriches spans with additional attributes before they're exported.
-
-Update your `tracing.py`:
-
-```python
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor, BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.resources import Resource
-from openinference.instrumentation.pydantic_ai import OpenInferenceSpanProcessor
-from openinference.instrumentation.pydantic_ai.utils import is_openinference_span
-
-_initialized = False
-
-def init_tracing(
-    endpoint: str = "http://127.0.0.1:6006/v1/traces",
-    service_name: str = "pydantic-ai-app",
-    batch: bool = False,
-) -> None:
-    """Initialize tracing with OpenInference conventions for Phoenix."""
-    global _initialized
-    if _initialized:
-        return
-
-    resource = Resource.create({"service.name": service_name})
-    tracer_provider = TracerProvider(resource=resource)
-
-    # Add OpenInference processor FIRST
-    # It enriches spans with OpenInference attributes before export
-    # The span_filter ensures only PydanticAI spans are processed
-    tracer_provider.add_span_processor(
-        OpenInferenceSpanProcessor(span_filter=is_openinference_span)
-    )
-
-    # Then add the exporter (SimpleSpanProcessor for dev, BatchSpanProcessor for prod)
-    exporter = OTLPSpanExporter(endpoint=endpoint)
-    processor = BatchSpanProcessor(exporter) if batch else SimpleSpanProcessor(exporter)
-    tracer_provider.add_span_processor(processor)
-
-    trace.set_tracer_provider(tracer_provider)
-    _initialized = True
-```
-
-**Why does processor order matter?** Span processors run in order. The OpenInference processor must enrich the span *before* the exporter reads it.
-
-**Additional dependency:**
-```bash
-pip install openinference-instrumentation-pydantic-ai
-```
-
-### Adding Session and User Context (OpenInference Only)
+### Adding Session and User Context
 
 OpenInference provides a context manager to attach metadata to traces:
 
@@ -358,13 +267,13 @@ This metadata appears in Phoenix and makes it easy to filter traces by user, ses
 
 ### Traces not appearing in Phoenix
 
-1. **Endpoint mismatch?** When passing `endpoint` directly to `OTLPSpanExporter()`, use the full path including `/v1/traces`. When using the `OTEL_EXPORTER_OTLP_ENDPOINT` environment variable, use just the base URL—the SDK appends the path automatically.
+1. **Endpoint mismatch?** When passing `endpoint` directly to `OTLPSpanExporter()` or `register()`, use the full path including `/v1/traces`. When using the `OTEL_EXPORTER_OTLP_ENDPOINT` environment variable, use just the base URL—the SDK appends the path automatically.
 
 2. **Is Phoenix running?** Check that http://127.0.0.1:6006 loads in your browser.
 
 3. **Initialization order?** Call `init_tracing()` or `register()` *before* creating any agents or making LLM calls. The TracerProvider must be set globally before instrumentation kicks in.
 
-4. **Missing instrumentation call?** If using Standard OTel (not OpenInference with auto_instrument), ensure you've called `Agent.instrument_all()`.
+4. **Missing instrumentation call?** Ensure you've called `Agent.instrument_all()`.
 
 ### Empty or minimal trace data
 
@@ -387,11 +296,10 @@ This usually means the TracerProvider wasn't set before agents were created. Ens
 
 | Approach | Dependencies | Semantic Conventions | Phoenix Features | Portability |
 |----------|--------------|---------------------|------------------|-------------|
-| **Quick Start: OpenInference** | `arize-phoenix-otel`, `openinference-instrumentation-pydantic-ai` | OpenInference | Best (threading, sessions) | Arize ecosystem |
-| **Quick Start: Standard OTel** | `arize-phoenix-otel` | OTel GenAI | Good | Any OTel backend |
-| **Manual Setup** | `opentelemetry-*` (+ `openinference-*` optionally) | Either | Depends on config | Full control |
+| **Option 1: Standard OTel** | `arize-phoenix-otel` | OTel GenAI | Good | Any OTel backend |
+| **Option 2: Manual + OpenInference** | `opentelemetry-*`, `openinference-instrumentation-pydantic-ai` | OpenInference | Best (threading, sessions) | Arize ecosystem |
 
-**Start with Quick Start: OpenInference** for the best Phoenix experience. Use **Standard OTel** if you need portability. Use **Manual Setup** to learn the internals or customize behavior.
+**Start with Option 1 (Standard OTel)** for simplicity and portability. Use **Option 2 (Manual + OpenInference)** if you need richer Phoenix visualizations and are committed to the Arize ecosystem.
 
 ---
 
