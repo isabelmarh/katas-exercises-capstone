@@ -7,7 +7,6 @@ from typing import Any
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
-from dotenv import load_dotenv
 from .agent import (
     assessment_agent,
     agent_kata_assessment_agent,
@@ -30,7 +29,6 @@ app = typer.Typer(
     add_completion=True,
 )
 console = Console()
-load_dotenv()
 CAPSTONE_ASSESS_PROMPT = (
     "Thoroughly assess this capstone project. Use your tools to explore the codebase "
     "systematically and gather evidence for each rubric category. Be thorough in checking "
@@ -44,20 +42,6 @@ RAG_ASSESS_PROMPT = (
 )
 
 
-def ensure_api_keys(
-    required_keys: tuple[str, ...] = ("GEMINI_API_KEY", "ANTHROPIC_API_KEY"),
-) -> None:
-    missing = [key for key in required_keys if not os.getenv(key)]
-    if not missing:
-        return
-
-    console.print("[yellow]Missing API keys detected.[/yellow]")
-    for key in missing:
-        value = typer.prompt(f"Enter {key}", hide_input=True)
-        if not value:
-            console.print(f"[red]Error: {key} is required to continue.[/red]")
-            raise typer.Exit(1)
-        os.environ[key] = value
 
 
 def _agent_file_prompt(relative_file: str) -> str:
@@ -417,7 +401,8 @@ def _run_targets(
                 task = progress.add_task(
                     "Agent exploring kata and generating feedback...", total=None
                 )
-                result = agent_kata_assessment_agent.run_sync(prompt, deps=deps)
+                agent = agent_map["agent"]
+                result = agent.run_sync(prompt, deps=deps)
                 progress.update(task, completed=True)
 
             assessment = result.output
@@ -436,7 +421,8 @@ def _run_targets(
                 task = progress.add_task(
                     "Agent exploring MCP server and generating feedback...", total=None
                 )
-                result = mcp_assessment_agent.run_sync(prompt, deps=deps)
+                agent = agent_map["mcp"]
+                result = agent.run_sync(prompt, deps=deps)
                 progress.update(task, completed=True)
 
             assessment = result.output
@@ -647,7 +633,7 @@ def info():
 @app.command()
 def bulk_assess(
     base_path: Path = typer.Argument(
-        ..., 
+        ...,
         help="Path to directory containing multiple student project directories"
     ),
     output_dir: Path = typer.Option(

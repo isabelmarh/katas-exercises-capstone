@@ -10,6 +10,14 @@ wheels/
 .venv
 .katas/
 exports/
+
+# Assessment reports
+assessment_reports/
+*_assessment.html
+*_assessment.json
+assessment.html
+assessment.json
+
 # Jetbrains
 .idea
 

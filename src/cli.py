@@ -13,71 +13,11 @@ from pydantic import BaseModel
 from pydantic_evals import Dataset
 from rich.console import Console
 from rich.table import Table
-from dotenv import load_dotenv
-load_dotenv()
 
 app = typer.Typer(no_args_is_help=True, help="Run evaluations for AI agent katas")
 console = Console()
 
 
-def _ensure_api_keys(required_keys: tuple[str, ...]) -> None:
-    missing = [key for key in required_keys if not os.getenv(key)]
-    if not missing:
-        return
-
-    console.print("[yellow]Missing API keys detected.[/yellow]")
-    for key in missing:
-        value = typer.prompt(f"Enter {key}", hide_input=True)
-        if not value:
-            console.print(f"[red]Error: {key} is required to continue.[/red]")
-            raise typer.Exit(1)
-        os.environ[key] = value
-
-
-def _read_env_lines(env_path: Path) -> list[str]:
-    if not env_path.exists():
-        return []
-    return env_path.read_text().splitlines()
-
-
-def _upsert_env_line(lines: list[str], key: str, value: str) -> tuple[list[str], bool]:
-    updated = False
-    found = False
-    new_lines: list[str] = []
-    for line in lines:
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
-            new_lines.append(line)
-            continue
-
-        prefix = ""
-        candidate = stripped
-        if stripped.startswith("export "):
-            prefix = "export "
-            candidate = stripped[len(prefix) :]
-
-        if candidate.startswith(f"{key}="):
-            found = True
-            existing_value = candidate.split("=", 1)[1]
-            if existing_value != value:
-                new_lines.append(f"{prefix}{key}={value}")
-                updated = True
-            else:
-                new_lines.append(line)
-            continue
-
-        new_lines.append(line)
-
-    if not found:
-        new_lines.append(f"{key}={value}")
-        updated = True
-
-    return new_lines, updated
-
-
-def _write_env_file(env_path: Path, lines: list[str]) -> None:
-    content = "\n".join(lines).rstrip("\n") + "\n"
-    env_path.write_text(content)
 
 
 class KataConfig(BaseModel):
@@ -159,36 +99,11 @@ def list_katas() -> None:
     console.print(table)
 
 
+
+
 @app.command("start")
 def onboard() -> None:
-    """Interactive setup for API keys."""
-    env_path = Path(".env")
-    lines = _read_env_lines(env_path)
-    updated = False
-
-    required_keys = ("GEMINI_API_KEY", "ANTHROPIC_API_KEY")
-
-
-    for key in required_keys:
-        value = os.getenv(key)
-        if not value:
-            value = typer.prompt(f"Enter {key}", hide_input=True)
-        if not value:
-            console.print(f"[red]Error: {key} is required to continue.[/red]")
-            raise typer.Exit(1)
-
-        lines, did_update = _upsert_env_line(lines, key, value)
-        updated = updated or did_update
-        os.environ[key] = value
-
-    
-
-    if updated or not env_path.exists():
-        _write_env_file(env_path, lines)
-        console.print(f"[green]Saved API keys to {env_path}[/green]")
-    else:
-        console.print("[green]API keys already configured.[/green]")
-
+    """Create a git branch to get started with the katas."""
     should_create_branch = typer.confirm("Create a git branch now?", default=True)
     if not should_create_branch:
         return
@@ -316,7 +231,6 @@ def assess(
     ),
 ):
     """Assess agent, MCP, RAG, or capstone projects and generate HTML/JSON reports."""
-    _ensure_api_keys(("GEMINI_API_KEY",))
     from src.assessor.main import assess as assessor_assess
 
     resolved_output_dir = output_dir
@@ -508,11 +422,9 @@ def bulk_assess() -> None:
 
     subprocess.run(["git", "fetch", "--all", "--prune"], cwd=repo_path, check=True)
 
-    from src.assessor.main import CAPSTONE_ASSESS_PROMPT, ensure_api_keys
+    from src.assessor.main import CAPSTONE_ASSESS_PROMPT
     from src.assessor.agent import assessment_agent
     from src.assessor.html_generator import generate_html_report
-
-    ensure_api_keys()
 
     summary_rows: list[dict[str, str]] = []
     worktree_paths: list[Path] = []

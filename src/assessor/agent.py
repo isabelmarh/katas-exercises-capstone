@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from pydantic_ai import Agent, RunContext
 from .models import AgentKataAssessment, CapstoneAssessment, MCPKataAssessment
@@ -8,6 +9,11 @@ from .project_tools import (
     get_project_structure,
     read_dependencies,
     read_readme,
+)
+
+DEFAULT_MODEL = (
+    "anthropic:claude-sonnet-4-5" if os.getenv("ANTHROPIC_API_KEY")
+    else "google-gla:gemini-2.5-pro"
 )
 
 
@@ -94,7 +100,7 @@ Be thorough and critical. Look for concrete evidence in the code, not just docum
 """
 
 assessment_agent = Agent(
-    "google-gla:gemini-2.5-pro",
+    DEFAULT_MODEL,
     output_type=CapstoneAssessment,
     system_prompt=SYSTEM_PROMPT,
     deps_type=Path,
@@ -150,21 +156,21 @@ Focus on FastMCP best practices and MCP protocol compliance.
 """
 
 agent_kata_assessment_agent = Agent(
-    "google-gla:gemini-2.5-pro",
+    DEFAULT_MODEL,
     output_type=AgentKataAssessment,
     system_prompt=AGENT_KATA_PROMPT,
     deps_type=Path,
 )
 
 rag_assessment_agent = Agent(
-    "google-gla:gemini-2.5-pro",
+    DEFAULT_MODEL,
     output_type=CapstoneAssessment,
     system_prompt=RAG_PROMPT,
     deps_type=Path,
 )
 
 mcp_assessment_agent = Agent(
-    "google-gla:gemini-2.5-pro",
+    DEFAULT_MODEL,
     output_type=MCPKataAssessment,
     system_prompt=MCP_PROMPT,
     deps_type=Path,
