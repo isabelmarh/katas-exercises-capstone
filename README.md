@@ -75,13 +75,19 @@ uv sync
 source .venv/bin/activate
 
 # List all available katas
-katas list-katas
+katas list
 
 # Run a specific kata
 katas run <kata-name>
 
 # Interactive kata selection
 katas run
+
+# Interactive CLI interaction with CLI chat 
+katas chat
+
+
+katas web
 ```
 
 ### Checking Setup

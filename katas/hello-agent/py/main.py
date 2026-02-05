@@ -4,15 +4,12 @@ from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import EqualsExpected
 from pydantic_ai import Agent
 
+# Create an agent using Claude model
+agent = Agent(
+    model='anthropic:claude-sonnet-4-5'
+)
 
 def main(inputs: str) -> str:
-    """Simple test function that handles basic math."""
-
-    # Create an agent using Claude model
-    agent = Agent(
-        model='anthropic:claude-sonnet-4-5'
-    )
-
     result = agent.run_sync(inputs)
     return result.output
 

@@ -4,8 +4,10 @@ import csv
 import re
 
 import getpass
-import os
 import subprocess
+from typing import Callable
+from attr import dataclass
+from pydantic_ai import Agent
 import typer
 import questionary
 import json
@@ -13,11 +15,10 @@ from pydantic import BaseModel
 from pydantic_evals import Dataset
 from rich.console import Console
 from rich.table import Table
+import uvicorn
 
 app = typer.Typer(no_args_is_help=True, help="Run evaluations for AI agent katas")
 console = Console()
-
-
 
 
 class KataConfig(BaseModel):
@@ -36,52 +37,107 @@ def discover_katas(workspace_path: Path = Path("katas")) -> list[KataConfig]:
             name=agent_file.relative_to(workspace_path).parts[0],
             path=agent_file.parent,
             agent_file=agent_file,
-        ) for agent_file in agent_files
+        )
+        for agent_file in agent_files
     ]
 
 
-def load_agent_function_from_file(agent_file: Path):
+@dataclass
+class KataFunction:
+    """
+    This class represents the loaded agent function and its associated dataset (if any) for a kata.
+    agent - the Agent object if defined in the agent file (preferred)
+    main - the main function if defined in the agent file (fallback)
+    dataset - the Dataset object if inline evaluations are defined in the agent file (dataset variable ending with _dataset)
+    run_evals - a callable that takes the agent function and runs the evaluations, either using the inline dataset or the evals file, and returns the report
+    """
+
+    agent: Agent | None = None
+    main_fn: Callable[[str], str] | None = None
+    dataset: Dataset | None = None
+    run_evals: Callable[[], None] | None = None
+
+    def execute_evals(self) -> None:
+        if self.run_evals:
+            console.print("[blue]Running evaluations...[/blue]")
+            self.run_evals()
+            return
+
+        run_agent: Callable[[str], str] | None = None
+
+        if self.main_fn is not None:
+            run_agent = self.main_fn
+        elif self.agent is not None:
+            agent = self.agent
+            run_agent = lambda s: agent.run_sync(s).output
+
+        if run_agent is None:
+            console.print(
+                "[red]No agent function or dataset defined for this kata![/red]"
+            )
+            typer.Exit(1)
+            return
+
+        if self.dataset is None:
+            console.print("[red]No dataset defined for this kata![/red]")
+            typer.Exit(1)
+            return
+
+        console.print("[blue]Running evaluations...[/blue]")
+        report = self.dataset.evaluate_sync(run_agent)
+        console.print("[green]Evaluation complete![/green]")
+        report.print(
+            include_input=True, include_output=True, include_expected_output=True
+        )
+
+
+def load_agent_function_from_file(kata: KataConfig) -> KataFunction:
     import importlib.util
     import sys
 
-    mod_name = f"{agent_file.stem}_{hash((agent_file, agent_file.stat().st_mtime_ns))}"
-    spec = importlib.util.spec_from_file_location(mod_name, agent_file)
+    console.print(f"[blue]Loading agent from {kata.agent_file}...[/blue]")
+
+    mod_name = f"{kata.agent_file.stem}_{hash((kata.agent_file, kata.agent_file.stat().st_mtime_ns))}"
+    spec = importlib.util.spec_from_file_location(mod_name, kata.agent_file)
     if spec is None or spec.loader is None:
-        raise ValueError(f"Could not load agent from {agent_file}")
+        raise ValueError(f"Could not load agent from {kata.agent_file}")
 
     module = importlib.util.module_from_spec(spec)
     sys.modules[mod_name] = module
     spec.loader.exec_module(module)
 
+    kata_function = KataFunction()
+
     # Check for inline evaluations (dataset ending with _dataset)
     dataset_attrs = [attr for attr in dir(module) if attr.endswith("_dataset")]
-    if dataset_attrs and hasattr(module, "main"):
+    if dataset_attrs:
         dataset = getattr(module, dataset_attrs[0])
-        main_fn = module.main
-        return (dataset, main_fn), True  # True indicates inline evals
+        kata_function.dataset = dataset
 
     # Preferred: a PydanticAI Agent object named `agent`
     if hasattr(module, "agent"):
-        agent = module.agent
-
-        def agent_function(inputs: str) -> str:
-            # sync all the way: avoids per-case event loop churn
-            res = agent.run_sync(inputs)
-            return res.output
-
-        return agent_function, False
+        kata_function.agent = module.agent
 
     # Fallback: a plain sync callable `main(inputs) -> str`
     if hasattr(module, "main"):
-        main_fn = module.main
-        if callable(main_fn):
-            return main_fn, False
+        if callable(module.main):
+            kata_function.main_fn = module.main  # pyright: ignore[reportAttributeAccessIssue]
 
-    raise ValueError(f"No agent, main function, or dataset found in {agent_file}")
+    # Fallback: a plain sync callable `main(inputs) -> str`
+    if hasattr(module, "run_evals"):
+        if callable(module.run_evals):
+            kata_function.run_evals = module.run_evals  # pyright: ignore[reportAttributeAccessIssue]
+
+    if not (kata_function.agent or kata_function.main_fn):
+        raise ValueError("No agent, main function")
+
+    return kata_function
 
 
-@app.command()
+@app.command(name="list")
+@app.command(name="list-katas")
 def list_katas() -> None:
+    """List all available katas in the workspace."""
     katas = discover_katas()
     if not katas:
         console.print("[red]No katas found![/red]")
@@ -93,12 +149,10 @@ def list_katas() -> None:
     table.add_column("Has Evals", style="green")
 
     for kata in katas:
-        has_evals = "✓"  # if kata.evals_file.stat().st_size > 0 else "✗"
+        has_evals = "✓"  # if kata.katas.stat().st_size > 0 else "✗"
         table.add_row(kata.name, str(kata.path), has_evals)
 
     console.print(table)
-
-
 
 
 @app.command("start")
@@ -122,7 +176,9 @@ def onboard() -> None:
             text=True,
         )
     except subprocess.CalledProcessError:
-        console.print("[yellow]Not a git repository; skipping branch creation.[/yellow]")
+        console.print(
+            "[yellow]Not a git repository; skipping branch creation.[/yellow]"
+        )
         return
 
     try:
@@ -137,11 +193,14 @@ def onboard() -> None:
             console.print(f"[green]Already on branch {branch_name}.[/green]")
             return
 
-        exists = subprocess.run(
-            ["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch_name}"],
-            capture_output=True,
-            text=True,
-        ).returncode == 0
+        exists = (
+            subprocess.run(
+                ["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch_name}"],
+                capture_output=True,
+                text=True,
+            ).returncode
+            == 0
+        )
 
         if exists:
             subprocess.run(["git", "checkout", branch_name], check=True)
@@ -153,10 +212,7 @@ def onboard() -> None:
         console.print(f"[red]Git error while creating branch: {exc}[/red]")
 
 
-@app.command()
-def run(
-    kata_name: str | None = typer.Argument(None, help="Name of the kata to run"),
-) -> None:
+def _select_kata(kata_name: str | None) -> KataConfig:
     katas = discover_katas()
     if not katas:
         console.print("[red]No katas found![/red]")
@@ -180,37 +236,52 @@ def run(
         if not kata:
             console.print(f"[red]Kata '{kata_name}' not found![/red]")
             raise typer.Exit(1)
+    return kata
 
-    console.print(f"[blue]Loading agent from {kata.agent_file}...[/blue]")
-    agent_function_or_runner, has_inline_evals = load_agent_function_from_file(
-        kata.agent_file
-    )
 
-    if has_inline_evals:
-        console.print(f"[blue]Running inline evaluations for {kata.name}...[/blue]")
-        dataset, main_fn = agent_function_or_runner 
-        report = dataset.evaluate_sync(main_fn)
-        console.print("[green]Evaluation complete![/green]")
-        report.print(include_input=True, include_output=True, include_expected_output=True)
-        return
+@app.command()
+def run(
+    kata_name: str | None = typer.Argument(None, help="Name of the kata to run"),
+) -> None:
+    """Run evaluations for a kata."""
+    kata = _select_kata(kata_name)
+    kata_function = load_agent_function_from_file(kata)
+    kata_function.execute_evals()
 
-    if kata.evals_file.stat().st_size == 0:
-        console.print(f"[red]Evals file for '{kata.name}' is empty![/red]")
+
+@app.command()
+def chat(
+    kata_name: str | None = typer.Argument(None, help="Name of the kata to run"),
+) -> None:
+    """Open an interactive chat interface with the kata's agent."""
+    kata = _select_kata(kata_name)
+    kata_function = load_agent_function_from_file(kata)
+    if kata_function.agent is None:
+        console.print("[red]No agent defined for this kata![/red]")
         raise typer.Exit(1)
+    kata_function.agent.to_cli_sync()
 
-    console.print(f"[blue]Loading evals for {kata.name}...[/blue]")
-    dataset = Dataset.from_file(kata.evals_file)
 
-    console.print(f"[blue]Running {len(dataset.cases)} evaluations...[/blue]")
+@app.command()
+def web(
+    kata_name: str | None = typer.Argument(None, help="Name of the kata to run"),
+    port: int = typer.Option(8765, "--port", "-p", help="Port to run the web interface on"),
+) -> None:
+    """Start a web interface for the kata's agent."""
+    kata = _select_kata(kata_name)
+    kata_function = load_agent_function_from_file(kata)
+    if kata_function.agent is None:
+        console.print("[red]No agent defined for this kata![/red]")
+        raise typer.Exit(1)
+    app = kata_function.agent.to_web()
 
-    def run_agent(inputs: str) -> str:
-        # Synchronous path only; agent_function already uses run_sync when needed
-        return agent_function_or_runner(inputs)
-
-    report = dataset.evaluate_sync(run_agent)
-
-    console.print("[green]Evaluation complete![/green]")
-    report.print(include_input=True, include_output=True, include_expected_output=True)
+    console.print(f"[green]Starting web interface on http://0.0.0.0:{port}[/green]")
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        log_level="debug",
+    )
 
 
 @app.command()
@@ -244,11 +315,20 @@ def assess(
             "capstone": "capstone",
         }
         kind_normalized = next(
-            (kind_value for folder, kind_value in kind_candidates.items() if folder in project_path.parts),
+            (
+                kind_value
+                for folder, kind_value in kind_candidates.items()
+                if folder in project_path.parts
+            ),
             None,
         )
 
-    if kind_normalized is not None and kind_normalized in {"agent", "mcp", "rag", "capstone"}:
+    if kind_normalized is not None and kind_normalized in {
+        "agent",
+        "mcp",
+        "rag",
+        "capstone",
+    }:
         resolved_output_dir = output_dir / kind_normalized
 
     assessor_assess(
@@ -331,7 +411,7 @@ def bulk_assess() -> None:
     """Interactive admin actions for cohort assessments."""
     action = questionary.select(
         "Admin action",
-        choices=[  
+        choices=[
             "Bulk assess branches (capstone only)",
             "Exit",
         ],
@@ -381,7 +461,9 @@ def bulk_assess() -> None:
         ).ask()
         if not raw:
             return
-        entries = [{"branch": branch, "label": ""} for branch in _parse_branches_text(raw)]
+        entries = [
+            {"branch": branch, "label": ""} for branch in _parse_branches_text(raw)
+        ]
 
     if not entries:
         console.print("[red]No branches provided.[/red]")
@@ -392,7 +474,6 @@ def bulk_assess() -> None:
             continue
         branch = entry["branch"]
         entry["label"] = branch
-
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     worktrees_base_input = questionary.path(
@@ -442,7 +523,11 @@ def bulk_assess() -> None:
         worktree_paths.append(worktree_path)
 
         remote_ref = branch if branch.startswith("origin/") else f"origin/{branch}"
-        ref = remote_ref if _git_ref_exists(repo_path, f"refs/remotes/{remote_ref}") else branch
+        ref = (
+            remote_ref
+            if _git_ref_exists(repo_path, f"refs/remotes/{remote_ref}")
+            else branch
+        )
 
         try:
             subprocess.run(
@@ -464,7 +549,7 @@ def bulk_assess() -> None:
                 }
             )
             continue
-            
+
         capstone_path = worktree_path / "capstone"
         if not capstone_path.exists():
             summary_rows.append(
@@ -480,7 +565,9 @@ def bulk_assess() -> None:
 
         console.print(f"[cyan]Assessing {label} ({branch})...[/cyan]")
         try:
-            result = assessment_agent.run_sync(CAPSTONE_ASSESS_PROMPT, deps=capstone_path)
+            result = assessment_agent.run_sync(
+                CAPSTONE_ASSESS_PROMPT, deps=capstone_path
+            )
             assessment = result.output
             student_dir = output_dir / safe_label
             student_dir.mkdir(parents=True, exist_ok=True)
@@ -528,7 +615,9 @@ def bulk_assess() -> None:
         )
     console.print(table)
 
-    save_summary = questionary.confirm("Save summary table to a text file?", default=True).ask()
+    save_summary = questionary.confirm(
+        "Save summary table to a text file?", default=True
+    ).ask()
     if save_summary:
         default_path = output_dir / "cohort_summary.txt"
         summary_path = questionary.text(
