@@ -1,0 +1,7 @@
+[project]
+name = "novel-characters"
+version = "0.1.0"
+description = "Kata extracting characters from Short Stories"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
