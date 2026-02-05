@@ -17,6 +17,8 @@ from rich.console import Console
 from rich.table import Table
 import uvicorn
 
+from src.telemetry import init_telemetry
+
 app = typer.Typer(no_args_is_help=True, help="Run evaluations for AI agent katas")
 console = Console()
 
@@ -245,6 +247,7 @@ def run(
 ) -> None:
     """Run evaluations for a kata."""
     kata = _select_kata(kata_name)
+    init_telemetry(project_name=kata.name)
     kata_function = load_agent_function_from_file(kata)
     kata_function.execute_evals()
 
@@ -255,6 +258,7 @@ def chat(
 ) -> None:
     """Open an interactive chat interface with the kata's agent."""
     kata = _select_kata(kata_name)
+    init_telemetry(project_name=kata.name)
     kata_function = load_agent_function_from_file(kata)
     if kata_function.agent is None:
         console.print("[red]No agent defined for this kata![/red]")
@@ -269,6 +273,7 @@ def web(
 ) -> None:
     """Start a web interface for the kata's agent."""
     kata = _select_kata(kata_name)
+    init_telemetry(project_name=kata.name)
     kata_function = load_agent_function_from_file(kata)
     if kata_function.agent is None:
         console.print("[red]No agent defined for this kata![/red]")

@@ -15,6 +15,7 @@ dependencies = [
   "mcp[cli]>=1.19.0",
   "logfire[httpx]>=4.14.2",
   "pydantic-ai-slim[web]>=1.7.0",
+  "openinference-instrumentation-pydantic-ai>=0.1.11"
 ]
 
 [project.scripts]
