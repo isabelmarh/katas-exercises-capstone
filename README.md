@@ -65,6 +65,32 @@ echo 'export GEMINI_API_KEY=$(op read "op://Private/GEMINI_API_KEY/credential" -
 echo 'export ANTHROPIC_API_KEY=$(op read "op://Private/ANTHROPIC_API_KEY/credential" --account <ACCOUNT_ID>)' >> ~/.zshrc
 ```
 
+## Setup
+
+### Project Structure Requirements
+
+- The `rag` or `capstone` directory **must exist** in the specified path  
+- Create these folders at the **root directory**  
+- Place your capstone/rag project folder **inside the corresponding directory**
+
+```
+root/
+├── rag/
+│   └── your-project/
+├── capstone/
+│   └── your-project/
+```
+
+### Branch Setup
+
+Run the interactive setup to create and configure a Git branch.  
+**Note:** Keep your branch name the same as your GitHub ID.
+
+```bash
+katas start
+```
+
+
 ### Running a Kata
 
 ```bash
@@ -127,6 +153,74 @@ agent = Agent(
     instructions='Your insructions here',
 )
 ```
+
+## Assessment
+
+### Interactive assessment (choose Agent / MCP / RAG / Capstone)
+
+```bash
+katas assess
+```
+### Assess Agent or MCP katas by path
+- Lists available agents
+```bash
+katas assess katas
+```      
+- Lists available MCP servers
+```bash
+katas assess mcp_katas
+``` 
+
+**Note:** Reports will be saved to respective folders under assessment_report   
+
+### Assess a specific RAG or Capstone project by path
+- rag - ```katas assess /path/to/rag/<your-folder>```
+
+- capstone - ```katas assess /path/to/capstone/<your-folder>```
+
+
+### Bulk Assess Command
+
+### Command
+```bash
+katas bulk-assess
+```
+
+### Description
+Runs bulk assessment on multiple Git branches using default configuration settings.
+
+### Git Repository
+- Repository Path: Defaults to the current working directory
+- Run the command from the root of the Git repository
+
+### Branch Input Options
+You can provide branch names using one of the following methods:
+
+1. Provide Branches Directly
+- Pass branch names as a comma-separated list
+- Example:
+  feature/login,bugfix/api-timeout,release/v1.2
+
+2. Read Branches from File
+- Provide a file (e.g., branches.txt)
+- Each branch name must be on a new line
+- Example (branches.txt):
+  feature/login
+  bugfix/api-timeout
+  release/v1.2
+
+### Assessment Settings
+- Other Options: Default values are used
+
+### Output
+- A separate report is generated for each branch
+- Reports are saved under:
+```exports/<branch-name>/```
+
+### Notes
+- Ensure the branches exist in the repository before running the command
+- Existing reports with the same branch name may be overwritten
+
 
 ## Evaluation Framework
 
