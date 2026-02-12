@@ -18,6 +18,14 @@ assessment_reports/
 assessment.html
 assessment.json
 
+# Audio files
+*.wav
+*.mp3
+
+# Model caches
+models/
+.cache/
+
 # Jetbrains
 .idea
 

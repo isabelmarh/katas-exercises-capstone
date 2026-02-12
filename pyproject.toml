@@ -39,6 +39,12 @@ dev = [
     "basedpyright>=1.31.7",
     "ruff>=0.14.1",
 ]
+tts = [
+    "qwen-tts",
+    "torch",
+    "soundfile",
+    "yt-dlp",
+]
 [tool.hatch.build.targets.wheel]
 include = [
   "katas/*/py",
