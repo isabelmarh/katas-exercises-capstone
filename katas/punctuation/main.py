@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import EqualsExpected
-from pydantic_ai import Agent
+
 
 def main(text: str) -> str:
     """
@@ -35,34 +35,8 @@ def main(text: str) -> str:
         The text with proper punctuation and capitalization added
     """
     # TODO: Implement punctuation and capitalization agent
-    
 
-    agent = Agent(
-        model='google-gla:gemini-2.5-pro',
-        instructions="""Your job is to punctuate and capitalize the text. 
-        Make sure you reply only with the corrected text and nothing else. 
-        Follow the following rules - 
-        Rules:
-            - Insert punctuation marks: comma (,), period (.), and question mark (?)
-            - Correct capitalization:
-                - Capitalize the first word of each sentence
-                - Capitalize acronyms (e.g., CIA, NASA)
-                - Capitalize proper nouns (e.g., Berlin, June)
-        
-        Critical constraints:
-            - PRESERVE every single word from the original text (no deletions, no rewording)
-            - PRESERVE spelling exactly, even if incorrect
-            - PRESERVE word order (do not reorder)
-            - ONLY INSERT punctuation and capitalization corrections
-            - DO NOT fix typos, grammar, or semantics beyond punctuation/capitalization
-            - DO NOT add or remove words
-            - DO NOT split or merge words
-            - DO NOT add any punctuation other than , . ?""",
-    )
-
-    return agent.run_sync(text).output
-
-    # raise NotImplementedError("Punctuation and capitalization agent not implemented")
+    raise NotImplementedError("Punctuation and capitalization agent not implemented")
 
 
 # Evaluation dataset
