@@ -20,13 +20,12 @@ dependencies = [
 
 [project.scripts]
 katas = "src.cli:app"
-text-check ="katas.text_checker.agent:main"
-text-check-evals ="katas.text_checker.evaluations:main"
 
 [tool.uv.workspace]
 members = [
   "katas/*/py",
   "mcp_katas/*/py",
+  "rag_katas/*/py",
   "assessor",
 ]
 

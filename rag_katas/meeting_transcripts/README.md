@@ -18,7 +18,6 @@ You are given:
   - Chunking
   - Embeddings (sentence-transformers)
   - In-memory Chroma DB
-  - Anthropic model via pydantic_ai
 - An evaluation dataset containing:
   - ✅ Generic RAG correctness cases (should pass)
   - ❌ PII redaction cases (should currently fail)
@@ -56,7 +55,12 @@ Your job is to modify the system so that:
     ```
     Currently there is no PII protection layer.
 
-3) Decide where to implement PII protection
+3)) Design and implement a PII redaction strategy
+
+    Consider:
+    - Redacting PII during ingestion (removing it from the transcript before it enters the system)
+    - Redacting PII during chunking (removing it from the context)
+    - Redacting PII in the final answer (removing it from the model's response)
 
 4) Make the failing tests pass.
 

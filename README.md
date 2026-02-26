@@ -97,6 +97,9 @@ katas start
 # Sync dependencies
 uv sync
 
+# Sync all dependencies for all katas (agents, MCP, RAG)
+uv sync --all-packages --all-groups --all-extras
+
 # Activate virtual environment
 source .venv/bin/activate
 

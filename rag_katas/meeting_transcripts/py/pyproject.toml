@@ -5,6 +5,5 @@ description = "Meeting transcripts kata for AI agent practice with Guardrails"
 requires-python = ">=3.12"
 dependencies = [
     "chromadb>=1.5.1",
-    "pydantic-evals>=1.0.1",
     "sentence-transformers>=5.2.3",
 ]

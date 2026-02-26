@@ -1,23 +1,26 @@
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Sequence
 
 import chromadb
+
 
 @dataclass(frozen=True)
 class Hit:
     id: str
     score: float
+    text: str
     metadata: Dict[str, Any]
+
 
 class ChromaClient:
     def __init__(self):
         self.client = chromadb.Client()
         self.name = "meeting_transcripts"
-        
-    def _create(self) -> None:
+        self._create()
+
+    def _create(self):
         self.collection = self.client.get_or_create_collection(
-            name=self.name,
-            metadata={"hnsw:space": "cosine"}
+            name=self.name, metadata={"hnsw:space": "cosine"}
         )
 
     def reset(self) -> None:
@@ -28,16 +31,21 @@ class ChromaClient:
         finally:
             self._create()
 
-
-    def upsert_chunks(self, ids: list[str], embeddings: list[list[float]], documents: list[str], metadatas: list[dict]):
+    def upsert_chunks(
+        self,
+        ids: Sequence[str],
+        embeddings: Sequence[Sequence[float]],
+        documents: Sequence[str],
+        metadatas: Sequence[dict[str, Any]],
+    ) -> None:
         self.collection.upsert(
-            ids=ids,
-            embeddings=embeddings,
-            documents=documents,
-            metadatas=metadatas,
+            ids=ids,  # pyright: ignore[reportArgumentType]
+            embeddings=embeddings,  # pyright: ignore[reportArgumentType]
+            documents=documents,  # pyright: ignore[reportArgumentType]
+            metadatas=metadatas,  # pyright: ignore[reportArgumentType]
         )
 
-    def query(self, embedding: list[float], n_results: int = 5):
+    def query(self, embedding: Sequence[float], n_results: int = 5):
         res = self.collection.query(
             query_embeddings=[embedding],
             n_results=n_results,
@@ -45,16 +53,21 @@ class ChromaClient:
         )
 
         ids = res["ids"][0]
+        assert res["documents"]
         docs = res["documents"][0]
+        assert res["distances"]
         dists = res["distances"][0]
+        assert res["metadatas"]
         metas = res["metadatas"][0]
 
-        hits = []
+        hits: list[Hit] = []
         for _id, doc, dist, meta in zip(ids, docs, dists, metas):
-            hits.append({
-                "id": _id,
-                "score": 1.0 - float(dist),  # cosine distance -> similarity
-                "text": doc,
-                "metadata": meta or {},
-            })
+            hits.append(
+                Hit(
+                    id=_id,
+                    score=1.0 - float(dist),  # cosine distance -> similarity
+                    text=doc,
+                    metadata=meta or {},  # pyright: ignore[reportArgumentType]
+                )
+            )
         return hits
