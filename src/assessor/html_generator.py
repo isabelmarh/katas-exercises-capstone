@@ -1,11 +1,16 @@
-from .models import AgentKataAssessment, CapstoneAssessment, MCPKataAssessment, QualityLevel
+from .models import (
+    AgentKataAssessment,
+    CapstoneAssessment,
+    MCPKataAssessment,
+    QualityLevel,
+)
 
 
 def generate_html_report(assessment: CapstoneAssessment, project_name: str) -> str:
-    
+
     def quality_badge(quality: QualityLevel) -> str:
         return f'<span class="quality-badge" style="background-color: {quality.color}">{quality.value.upper()}</span>'
-    
+
     categories = [
         ("System Architecture & Design", assessment.system_architecture),
         ("Implementation & Functionality", assessment.implementation),
@@ -14,9 +19,10 @@ def generate_html_report(assessment: CapstoneAssessment, project_name: str) -> s
         ("Documentation & UX", assessment.documentation),
         ("Innovation & Initiative", assessment.innovation),
     ]
-    
-    categories_html = "\n".join([
-        f"""
+
+    categories_html = "\n".join(
+        [
+            f"""
         <div class="category">
             <div class="category-header">
                 <h3>{name}</h3>
@@ -25,24 +31,27 @@ def generate_html_report(assessment: CapstoneAssessment, project_name: str) -> s
             <p class="justification">{cat.justification}</p>
             <div class="category-improvements">
                 <h4>Areas for Improvement</h4>
-                <ul>{''.join([f'<li>{imp}</li>' for imp in cat.areas_for_improvement])}</ul>
+                <ul>{"".join([f"<li>{imp}</li>" for imp in cat.areas_for_improvement])}</ul>
             </div>
         </div>
         """
-        for name, cat in categories
-    ])
-    
+            for name, cat in categories
+        ]
+    )
+
     strengths_html = "\n".join([f"<li>{s}</li>" for s in assessment.strengths])
-    improvements_html = "\n".join([f"<li>{i}</li>" for i in assessment.areas_for_improvement])
-    
+    improvements_html = "\n".join(
+        [f"<li>{i}</li>" for i in assessment.areas_for_improvement]
+    )
+
     overall_color = assessment.overall_rating.color
-    
+
     # circumference = 2 * 3.14159 * 70
     # score_percentage = (assessment.overall_score / 100) * circumference
     # score_ring_dasharray = f"{score_percentage} {circumference}"
-    
+
     overall_rating_text = assessment.overall_rating.value.upper()
-    
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -616,9 +625,7 @@ def generate_agent_kata_report(
 """
 
 
-def generate_mcp_kata_report(
-    assessment: MCPKataAssessment, project_name: str
-) -> str:
+def generate_mcp_kata_report(assessment: MCPKataAssessment, project_name: str) -> str:
     """Simplified HTML report for single-file MCP server katas."""
 
     strengths_html = "\n".join([f"<li>{s}</li>" for s in assessment.strengths])

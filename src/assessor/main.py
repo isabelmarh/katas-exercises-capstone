@@ -43,8 +43,6 @@ RAG_ASSESS_PROMPT = (
 )
 
 
-
-
 def _agent_file_prompt(relative_file: str) -> str:
     return (
         "Assess the Pydantic AI agent kata in the target file. "
@@ -83,7 +81,10 @@ def _find_first_file(base_path: Path, filenames: list[str]) -> Path | None:
 
 def _derive_display_name(file_path: Path) -> str:
     parent_name = file_path.parent.name
-    if parent_name in {"katas", "mcp_katas"} and file_path.parent.parent != file_path.parent:
+    if (
+        parent_name in {"katas", "mcp_katas"}
+        and file_path.parent.parent != file_path.parent
+    ):
         return file_path.parent.parent.name
     return parent_name
 
@@ -159,7 +160,11 @@ def _resolve_assessment_targets(target_path: Path) -> list[AssessmentTarget]:
                     subdirs = [kata_dir]
 
         if not subdirs:
-            subdirs = [p for p in mcp_dir.iterdir() if p.is_dir() and not p.name.startswith(".")]
+            subdirs = [
+                p
+                for p in mcp_dir.iterdir()
+                if p.is_dir() and not p.name.startswith(".")
+            ]
         if subdirs:
             for kata_dir in subdirs:
                 mcp_file = _find_first_file(kata_dir, ["server.py", "main.py"])
@@ -191,7 +196,9 @@ def _resolve_assessment_targets(target_path: Path) -> list[AssessmentTarget]:
     katas_dir = root if root.name == "katas" else root / "katas"
     if katas_dir.exists() and katas_dir.is_dir():
         # Support multiple agent katas under katas/<agent_name>/...
-        subdirs = [p for p in katas_dir.iterdir() if p.is_dir() and not p.name.startswith(".")]
+        subdirs = [
+            p for p in katas_dir.iterdir() if p.is_dir() and not p.name.startswith(".")
+        ]
         if subdirs:
             for agent_dir in subdirs:
                 agent_file = _find_first_file(agent_dir, ["main.py"])
@@ -259,7 +266,9 @@ def _resolve_assessment_targets(target_path: Path) -> list[AssessmentTarget]:
     return targets
 
 
-def _select_assessment_target(targets: list[AssessmentTarget], kind: str) -> AssessmentTarget:
+def _select_assessment_target(
+    targets: list[AssessmentTarget], kind: str
+) -> AssessmentTarget:
     if not targets:
         console.print("[red]Error: No assessable targets found.[/red]")
         raise typer.Exit(1)
@@ -299,11 +308,7 @@ def _select_project_folder(root: Path, kind: str) -> Path:
         console.print(f"[red]Error: {root} must be a directory[/red]")
         raise typer.Exit(1)
 
-    subdirs = [
-        p
-        for p in root.iterdir()
-        if p.is_dir() and not p.name.startswith(".")
-    ]
+    subdirs = [p for p in root.iterdir() if p.is_dir() and not p.name.startswith(".")]
     if not subdirs:
         console.print(f"[yellow]No project folders found under {root}.[/yellow]")
         raise typer.Exit(1)
@@ -551,7 +556,11 @@ def assess(
             "capstone": "capstone",
         }
         kind_normalized = next(
-            (kind_value for folder, kind_value in kind_candidates.items() if folder in project_path.parts),
+            (
+                kind_value
+                for folder, kind_value in kind_candidates.items()
+                if folder in project_path.parts
+            ),
             None,
         )
         if kind_normalized is None:
@@ -563,7 +572,9 @@ def assess(
 
     if targets is not None:
         if kind_normalized in {"rag", "capstone"} and len(targets) == 1:
-            selected_path = _select_project_folder(targets[0].target_path, kind_normalized)
+            selected_path = _select_project_folder(
+                targets[0].target_path, kind_normalized
+            )
             targets = [
                 AssessmentTarget(
                     kind=kind_normalized,
@@ -580,7 +591,9 @@ def assess(
         target_root = project_path if project_path is not None else Path.cwd()
         all_targets = _resolve_assessment_targets(target_root)
         if not all_targets:
-            console.print(f"[red]No {kind_normalized} targets found in {target_root}[/red]")
+            console.print(
+                f"[red]No {kind_normalized} targets found in {target_root}[/red]"
+            )
             raise typer.Exit(1)
 
         if project_path is not None and len(all_targets) == 1:
@@ -613,7 +626,7 @@ def assess(
 def info():
     """
     Display information about the Capstone Assessor and assessment criteria.
-    
+
     Shows what the agent checks for and the six assessment categories used
     to evaluate capstone projects in the AI Engineering Upskilling Program.
     """
@@ -639,8 +652,7 @@ def info():
 @app.command()
 def bulk_assess(
     base_path: Path = typer.Argument(
-        ...,
-        help="Path to directory containing multiple student project directories"
+        ..., help="Path to directory containing multiple student project directories"
     ),
     output_dir: Path = typer.Option(
         None,
@@ -651,16 +663,16 @@ def bulk_assess(
 ):
     """
     Assess multiple capstone projects in batch mode.
-    
+
     Processes all subdirectories in the base path as separate projects.
     For each project:
     - Generates an HTML assessment report
     - Saves JSON data file in the project directory
     - Displays summary table with ratings and scores
-    
+
     HTML reports can be saved to a central location or within each project.
     JSON files are always saved in each project as 'capstone_assessment.json'.
-    
+
     Example:
         capstone-assessor bulk-assess ~/students/capstones
         capstone-assessor bulk-assess ~/students/capstones -o ~/reports
@@ -747,9 +759,7 @@ def bulk_assess(
             console.print(
                 f"[bold red]✗[/bold red] Failed to assess {project_name}: {e}\n"
             )
-            results.append(
-                {"name": project_name, "rating": "ERROR", "path": "N/A"}
-            )
+            results.append({"name": project_name, "rating": "ERROR", "path": "N/A"})
 
     console.print("\n[bold cyan]Bulk Assessment Summary[/bold cyan]\n")
 
@@ -769,7 +779,7 @@ def bulk_assess(
         table.add_row(
             r["name"],
             f"[{rating_color}]{r['rating']}[/{rating_color}]",
-            #f"{r['score']}/100",
+            # f"{r['score']}/100",
         )
 
     console.print(table)
@@ -790,15 +800,15 @@ def commit_assessments(
 ):
     """
     Commit and push assessment files to student project repositories.
-    
+
     For each project directory:
     - Stages capstone_assessment.html and capstone_assessment.json
     - Creates a git commit with the specified message
     - Optionally pushes to the remote repository
-    
+
     Useful after running bulk-assess to distribute assessment results
     back to student repositories.
-    
+
     Example:
         capstone-assessor commit-assessments ~/students/capstones
         capstone-assessor commit-assessments ~/students/capstones -m "Final assessment" --no-push

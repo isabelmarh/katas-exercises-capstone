@@ -5,9 +5,8 @@ from pydantic_evals.evaluators import EqualsExpected
 from pydantic_ai import Agent
 
 # Create an agent using Claude model
-agent = Agent(
-    model='anthropic:claude-sonnet-4-5'
-)
+agent = Agent(model="anthropic:claude-sonnet-4-5")
+
 
 def main(inputs: str) -> str:
     result = agent.run_sync(inputs)

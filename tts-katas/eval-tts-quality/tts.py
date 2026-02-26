@@ -39,7 +39,9 @@ if __name__ == "__main__":
         "Qwen/Qwen3-TTS-12Hz-1.7B-Base",  # Use Base model for voice cloning
         device_map="cuda:0" if torch.cuda.is_available() else "cpu",
         dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-        attn_implementation="flash_attention_2" if torch.cuda.is_available() else "eager",
+        attn_implementation="flash_attention_2"
+        if torch.cuda.is_available()
+        else "eager",
     )
 
     samples = [

@@ -9,7 +9,9 @@ from pathlib import Path
 KATA_DIR = Path(__file__).parent
 
 
-def download_seed(url: str = "https://www.youtube.com/watch?v=REuOO4Blwyw", duration: int = 15):
+def download_seed(
+    url: str = "https://www.youtube.com/watch?v=REuOO4Blwyw", duration: int = 15
+):
     """Download audio clip from YouTube"""
     output_file = KATA_DIR / "seed.wav"
 
@@ -19,9 +21,12 @@ def download_seed(url: str = "https://www.youtube.com/watch?v=REuOO4Blwyw", dura
         [
             "yt-dlp",
             "--extract-audio",
-            "--audio-format", "wav",
-            "--postprocessor-args", f"ffmpeg:-ss 0 -t {duration}",
-            "-o", str(output_file),
+            "--audio-format",
+            "wav",
+            "--postprocessor-args",
+            f"ffmpeg:-ss 0 -t {duration}",
+            "-o",
+            str(output_file),
             url,
         ],
         check=True,

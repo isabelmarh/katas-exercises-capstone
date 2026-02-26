@@ -272,7 +272,9 @@ def chat(
 @app.command()
 def web(
     kata_name: str | None = typer.Argument(None, help="Name of the kata to run"),
-    port: int = typer.Option(8765, "--port", "-p", help="Port to run the web interface on"),
+    port: int = typer.Option(
+        8765, "--port", "-p", help="Port to run the web interface on"
+    ),
 ) -> None:
     """Start a web interface for the kata's agent."""
     kata = _select_kata(kata_name)

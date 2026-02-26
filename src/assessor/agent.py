@@ -12,7 +12,8 @@ from .project_tools import (
 )
 
 DEFAULT_MODEL = (
-    "anthropic:claude-sonnet-4-5" if os.getenv("ANTHROPIC_API_KEY")
+    "anthropic:claude-sonnet-4-5"
+    if os.getenv("ANTHROPIC_API_KEY")
     else "google-gla:gemini-2.5-pro"
 )
 
