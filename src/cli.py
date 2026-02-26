@@ -142,6 +142,7 @@ def load_agent_function_from_file(kata: KataConfig) -> KataFunction:
 def list_katas() -> None:
     """List all available katas in the workspace."""
     katas = discover_katas()
+    katas.extend(discover_katas(Path("rag_katas")))
     if not katas:
         console.print("[red]No katas found![/red]")
         return
@@ -217,6 +218,7 @@ def onboard() -> None:
 
 def _select_kata(kata_name: str | None) -> KataConfig:
     katas = discover_katas()
+    katas.extend(discover_katas(Path("rag_katas")))
     if not katas:
         console.print("[red]No katas found![/red]")
         raise typer.Exit(1)
