@@ -55,14 +55,18 @@ Your job is to modify the system so that:
     ```
     Currently there is no PII protection layer.
 
-3)) Design and implement a PII redaction strategy
+3) Design and implement a PII redaction strategy
 
     Consider:
-    - Redacting PII during ingestion (removing it from the transcript before it enters the system)
-    - Redacting PII during chunking (removing it from the context)
+    - Redacting PII during ingestion ofg the Knowledge base (removing it from the transcript before it enters the system)
+    - Redacting PII before passing to the agent (removing it from the context)
     - Redacting PII in the final answer (removing it from the model's response)
+  
+    Consider:
+    - custom/manual regexes
+    - usign a libery like [presidio](https://github.com/microsoft/presidio)
 
-4) Make the failing tests pass.
+5) Make the failing tests pass.
 
     These tests must pass:
     - pii_email_should_be_redacted
@@ -81,7 +85,7 @@ Your job is to modify the system so that:
     - Return a refusal message
     - Or design a cleaner compliance strategy
 
-5) Keep the RAG behaviour intact
+6) Keep the RAG behaviour intact
 
     Do not break the passing tests:
     - mvp_scope
