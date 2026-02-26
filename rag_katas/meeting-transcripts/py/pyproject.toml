@@ -1,0 +1,8 @@
+[project]
+name = "meeting-transcripts"
+version = "0.1.0"
+description = "Meeting transcripts kata for AI agent practice with Guardrails"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic-evals>=1.0.1",
+]
