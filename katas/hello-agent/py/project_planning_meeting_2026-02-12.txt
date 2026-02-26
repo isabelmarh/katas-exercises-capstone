@@ -1,0 +1,219 @@
+Project Planning – "Customer Insights Dashboard" (Kickoff)
+Date: 2026-02-12
+Attendees: Product (Nina), Eng Lead (Sam), Backend (Leah), Frontend (Marco), Data (Priya), QA (Jo)
+Duration: 52 minutes
+
+00:00:03 Nina (PM): Alright, quick kickoff. Goal today: agree scope for the MVP of the Customer Insights Dashboard, decide tech direction, and leave with action items.
+
+00:00:15 Sam (Eng Lead): Yep. Also we should align on constraints: we’re not building the whole analytics platform, just the dashboard slice.
+
+00:00:32 Nina: Right. MVP is: searchable customers, a profile view, and a timeline of key events. No fancy forecasting for v1.
+
+00:01:05 Marco (FE): Are we building this inside the existing admin app or as a separate SPA?
+
+00:01:18 Sam: I’m leaning inside the existing admin app. Less auth work, reuse components. But we should check if it’ll slow down deploys.
+
+00:01:34 Leah (BE): If it’s inside admin, we can reuse the gateway service too. If it’s separate we need a new client registration and permissions.
+
+00:02:10 Priya (Data): On events timeline, where does the data come from? We have the events table but it’s not perfect. There’s also the Kafka topic.
+
+00:02:28 Nina: For MVP, can we use what’s already in Postgres? Even if we backfill later?
+
+00:02:40 Priya: Yeah. Querying Postgres is simplest. Kafka would be a bigger lift because we’d need a consumer and a materialized view.
+
+00:03:12 Sam: Okay, tentative: read from Postgres for MVP. We can add streaming later.
+
+00:03:25 Jo (QA): I just want clarity—are we committing to “Postgres only” or “Postgres first”?
+
+00:03:33 Sam: Postgres first. Not locking ourselves out, but keep it minimal.
+
+00:04:05 Nina: Cool. Search: we need by email, customer ID, maybe name. Name search is fuzzy though.
+
+00:04:26 Leah: We can do exact match for email and ID easily. Name search gets tricky. We could do basic ILIKE for MVP, it’s okay.
+
+00:04:44 Marco: UI-wise, exact is fine. We can add typeahead later.
+
+00:05:02 Sam: Let’s not over-engineer search. MVP: email + customer ID exact, and name as “best effort”.
+
+00:05:19 Nina: Works.
+
+00:06:10 Leah: On the API shape: should we do a single “customer profile” endpoint or multiple endpoints for profile, events, subscriptions?
+
+00:06:24 Sam: I’d prefer multiple endpoints to keep payloads small. But we should be careful about chatty calls.
+
+00:06:41 Marco: If we’re inside admin app, we can parallelize calls. Also caching on the gateway helps.
+
+00:06:58 Sam: Okay, decision-ish: separate endpoints, and we’ll optimize if it’s too slow.
+
+00:07:22 Nina: Speaking of slow: what’s acceptable? We should pick a performance budget.
+
+00:07:34 Sam: For profile view: time to interactive < 2 seconds on a warm cache. Cold cache maybe 4 seconds. We’ll measure.
+
+00:08:05 Jo: Add that to acceptance criteria.
+
+00:08:14 Nina: Yep.
+
+00:09:01 Priya: Events timeline: do we need “human readable labels” or raw event codes?
+
+00:09:12 Nina: Human readable. People won’t interpret EVT_1023.
+
+00:09:22 Leah: Then we need a mapping table. We have one in the analytics repo but it’s outdated.
+
+00:09:36 Priya: I can export the latest mapping from the warehouse. For MVP we can start with top 20 event types.
+
+00:10:02 Nina: Great.
+
+00:10:41 Marco: Permissions: who sees this dashboard? Everyone in Support?
+
+00:10:49 Nina: Support and CS managers. Not all staff. We need role gating.
+
+00:11:02 Sam: That’s why I prefer inside admin app; roles already exist.
+
+00:11:18 Leah: I’ll check how roles are done in the gateway service; there’s a decorator for it.
+
+00:12:10 Nina: Timeline UI: we should show date, event label, maybe source. Clicking expands for details.
+
+00:12:44 Marco: Noted.
+
+00:13:05 Jo: Can we log events for auditing? Like who looked up which customer.
+
+00:13:14 Sam: Hmm. That’s probably important. But maybe not MVP? Or minimal logging.
+
+00:13:28 Nina: We at least need basic audit logs. Compliance will ask.
+
+00:13:38 Sam: Okay—add audit log for search + profile view. We can just push to existing audit endpoint.
+
+00:14:06 Leah: Makes sense.
+
+00:15:22 Nina: Timeline sorting: newest first.
+
+00:15:25 Marco: Yep.
+
+00:16:02 Sam: We should define what “key events” are. Are we including billing events? product usage? support tickets?
+
+00:16:18 Nina: MVP: billing status changes, plan changes, and last login. Support tickets can be later.
+
+00:16:33 Priya: Last login is in auth DB, not in main DB.
+
+00:16:41 Leah: We can request last login from auth service. That’s one extra call.
+
+00:16:55 Sam: That’s okay. But remember performance budget.
+
+00:17:10 Nina: If last login is hard, we can drop it for MVP, but I’d like it.
+
+00:17:24 Sam: Let’s keep it in scope but we’ll timebox integration.
+
+00:18:50 Marco: Design: do we have mocks?
+
+00:18:58 Nina: I’ll send the Figma link after the call.
+
+00:19:10 Jo: For testing: we’ll need test customers. We can create fixtures.
+
+00:19:22 Leah: We should be careful with real customer data in staging. Let’s use synthetic.
+
+00:19:40 Nina: Agree.
+
+00:20:14 Sam: Timeline data volume: are we paging?
+
+00:20:20 Leah: We should. Some customers have thousands of events.
+
+00:20:28 Marco: In UI, show latest 50, load more.
+
+00:20:36 Nina: Perfect.
+
+00:21:05 Priya: Query cost: we should index on customer_id + created_at.
+
+00:21:18 Leah: There’s already an index on customer_id but not composite. I can add a migration.
+
+00:22:10 Sam: Alright.
+
+00:23:02 Nina: Deadlines: we want MVP demo in 3 weeks. So we need a plan.
+
+00:23:18 Sam: Roughly:
+- Week 1: API + basic UI scaffolding
+- Week 2: events timeline + mapping + permissions
+- Week 3: polish + QA + perf
+
+00:23:39 Jo: I’ll need at least 3 days in Week 3 for regression.
+
+00:23:48 Sam: Okay.
+
+00:24:12 Nina: Open questions: do we need a new service for this?
+
+00:24:20 Leah: I don’t think so. We can add endpoints to the existing customer service and gateway. A new service is overhead.
+
+00:24:35 Sam: Agree. No new service for MVP.
+
+00:25:04 Marco: Any risk with the admin app bundle size?
+
+00:25:12 Sam: Possibly. But we can lazy-load the dashboard route.
+
+00:25:20 Marco: Cool.
+
+00:26:11 Nina: Another thing: Support asked if they can export the timeline as CSV.
+
+00:26:20 Sam: Not MVP. That’s a “nice to have”.
+
+00:26:28 Nina: Got it. Put in backlog.
+
+00:27:02 Priya: Quick note: the warehouse has a better definition of “plan changes”. But if we’re using Postgres, definitions might differ.
+
+00:27:16 Nina: For MVP, consistency is more important than perfect. We’ll document what we mean.
+
+00:27:42 Jo: Can we add a disclaimer in the UI? Like “data may be delayed”?
+
+00:27:50 Nina: Yes.
+
+00:28:04 Sam: Okay, decisions / action items time.
+
+00:28:10 Sam: Decision: Build the dashboard inside the existing admin app (not a separate SPA) for MVP.
+
+00:28:20 Sam: Decision: Use Postgres as the primary data source for MVP (“Postgres first”), defer streaming/Kafka.
+
+00:28:35 Sam: Decision: No new microservice for MVP; add endpoints to existing customer service + gateway.
+
+00:28:46 Sam: Decision: Separate endpoints for profile and timeline (avoid massive payloads).
+
+00:29:02 Nina: Decision: MVP scope includes billing status changes, plan changes, and last login (timeboxed).
+
+00:29:18 Nina: Action item: Sam to write a 1-page tech plan and milestones by Friday 2026-02-13.
+
+00:29:32 Nina: Action item: Leah to draft API endpoint specs and identify required DB indexes by Monday 2026-02-16.
+
+00:29:46 Nina: Action item: Marco to create UI skeleton + routing and propose lazy-loading approach by Monday 2026-02-16.
+
+00:30:02 Nina: Action item: Priya to provide a mapping table for top 20 event types by Wednesday 2026-02-18.
+
+00:30:18 Nina: Action item: Jo to define acceptance criteria (incl. perf budget + audit logging) by Wednesday 2026-02-18.
+
+00:30:46 Leah: For the index, I’ll add customer_id + created_at composite.
+
+00:31:02 Jo: Perf budget reminder: TTI < 2s warm, < 4s cold. Also audit logs required.
+
+00:31:18 Marco: I’ll need the roles list.
+
+00:31:24 Leah: I’ll send it. Also—who’s the point of contact for Support? Is it Alex?
+
+00:31:34 Nina: Yeah, Alex in Support. You can email him at alex.support@example.com if needed.
+
+00:31:49 Sam: Also, quick PII reminder: don’t paste real customer emails in tickets. Use synthetic.
+
+00:32:03 Jo: +1.
+
+00:33:10 Nina: Any blockers?
+
+00:33:14 Priya: Might need access to the warehouse export job. I’ll ping data ops.
+
+00:33:30 Marco: None.
+
+00:33:34 Leah: None.
+
+00:33:38 Sam: Cool.
+
+00:34:00 Nina: End. I’ll share notes. Also my phone is +44 7700 900123 if urgent—though Slack is better.
+
+00:34:14 Sam: Please don’t put that in Jira 😂
+
+00:34:22 Nina: Fair.
+
+00:34:40 Jo: Thanks all.
