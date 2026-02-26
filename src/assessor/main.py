@@ -12,6 +12,7 @@ from .agent import (
     agent_kata_assessment_agent,
     rag_assessment_agent,
     mcp_assessment_agent,
+    get_assessment_usage_limits,
 )
 from .models import AgentKataAssessment, MCPKataAssessment
 from .html_generator import (
@@ -362,6 +363,11 @@ def _run_targets(
     output_dir: Path,
     output_override: Path | None = None,
 ) -> None:
+    usage_limits = get_assessment_usage_limits()
+
+    def _run_with_limits(agent: Any, prompt: str, deps: Path):
+        return agent.run_sync(prompt, deps=deps, usage_limits=usage_limits)
+
     agent_map: dict[str, Any] = {
         "agent": agent_kata_assessment_agent,
         "mcp": mcp_assessment_agent,
@@ -402,7 +408,7 @@ def _run_targets(
                     "Agent exploring kata and generating feedback...", total=None
                 )
                 agent = agent_map["agent"]
-                result = agent.run_sync(prompt, deps=deps)
+                result = _run_with_limits(agent, prompt, deps)
                 progress.update(task, completed=True)
 
             assessment = result.output
@@ -422,7 +428,7 @@ def _run_targets(
                     "Agent exploring MCP server and generating feedback...", total=None
                 )
                 agent = agent_map["mcp"]
-                result = agent.run_sync(prompt, deps=deps)
+                result = _run_with_limits(agent, prompt, deps)
                 progress.update(task, completed=True)
 
             assessment = result.output
@@ -443,7 +449,7 @@ def _run_targets(
                     "Agent exploring codebase and running assessment...", total=None
                 )
                 agent = agent_map[target.kind]
-                result = agent.run_sync(prompt, deps=deps)
+                result = _run_with_limits(agent, prompt, deps)
                 progress.update(task, completed=True)
 
             assessment = result.output
@@ -680,6 +686,7 @@ def bulk_assess(
     )
 
     results: list[dict[str, str]] = []
+    usage_limits = get_assessment_usage_limits()
 
     for i, project_path in enumerate(project_dirs, 1):
         project_name = project_path.name
@@ -701,6 +708,7 @@ def bulk_assess(
                 result = assessment_agent.run_sync(
                     "Thoroughly assess this capstone project. Use your tools to explore the codebase systematically and gather evidence for each rubric category. Be thorough in checking for all required components.",
                     deps=project_path,
+                    usage_limits=usage_limits,
                 )
 
                 progress.update(task, completed=True)

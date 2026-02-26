@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from pydantic_ai import Agent, RunContext
+from pydantic_ai import Agent, RunContext, UsageLimits
 from .models import AgentKataAssessment, CapstoneAssessment, MCPKataAssessment
 from .project_tools import (
     search_code_content,
@@ -15,6 +15,10 @@ DEFAULT_MODEL = (
     "anthropic:claude-sonnet-4-5" if os.getenv("ANTHROPIC_API_KEY")
     else "google-gla:gemini-2.5-pro"
 )
+
+
+def get_assessment_usage_limits() -> UsageLimits:
+    return UsageLimits(request_limit=200)
 
 
 SYSTEM_PROMPT = """You are an expert assessor for the AI Engineering Upskilling Program capstone projects.

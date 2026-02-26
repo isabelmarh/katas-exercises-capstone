@@ -18,6 +18,7 @@ from rich.table import Table
 import uvicorn
 
 from src.telemetry import init_telemetry
+from src.assessor.agent import get_assessment_usage_limits
 
 app = typer.Typer(no_args_is_help=True, help="Run evaluations for AI agent katas")
 console = Console()
@@ -515,6 +516,7 @@ def bulk_assess() -> None:
     summary_rows: list[dict[str, str]] = []
     worktree_paths: list[Path] = []
     used_names: set[str] = set()
+    usage_limits = get_assessment_usage_limits()
 
     for entry in entries:
         branch = entry["branch"]
@@ -571,7 +573,7 @@ def bulk_assess() -> None:
         console.print(f"[cyan]Assessing {label} ({branch})...[/cyan]")
         try:
             result = assessment_agent.run_sync(
-                CAPSTONE_ASSESS_PROMPT, deps=capstone_path
+                CAPSTONE_ASSESS_PROMPT, deps=capstone_path, usage_limits=usage_limits
             )
             assessment = result.output
             student_dir = output_dir / safe_label
