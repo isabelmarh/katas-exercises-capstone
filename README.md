@@ -84,7 +84,11 @@ root/
 ### Branch Setup
 
 Run the interactive setup to create and configure a Git branch.  
-**Note:** Keep your branch name the same as your GitHub ID.
+
+```bash
+Note: Keep your branch name the same as your GitHub ID.(ensure that the branch name does not contain any special
+characters. Only _ and - are permitted).
+```
 
 ```bash
 katas start
