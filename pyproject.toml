@@ -14,8 +14,9 @@ dependencies = [
   "httpx>=0.28.1",
   "mcp[cli]>=1.19.0",
   "logfire[httpx]>=4.14.2",
-  "pydantic-ai-slim[web]>=1.7.0",
-  "openinference-instrumentation-pydantic-ai>=0.1.11"
+  "pydantic-ai-slim[anthropic,google,web]>=1.7.0",
+  "openinference-instrumentation-pydantic-ai>=0.1.11",
+  "griffe>=1.15.0",
 ]
 
 [project.scripts]
@@ -27,6 +28,7 @@ members = [
   "mcp_katas/*/py",
   "rag_katas/*/py",
   "assessor",
+  "katas/self-building-agent",
 ]
 
 [build-system]
