@@ -619,7 +619,6 @@ def bulk_assess() -> None:
     for row in summary_rows:
         table.add_row(
             row.get("label", "N/A"),
-            row.get("branch", "N/A"),
             row.get("completed", "No"),
             row.get("rating", "N/A"),
             row.get("report", "N/A"),
