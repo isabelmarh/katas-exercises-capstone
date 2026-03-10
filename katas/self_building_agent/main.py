@@ -90,6 +90,7 @@ def make_toolset(ctx: RunContext) -> FunctionToolset:
         """Write and immediately register a new tool. code must define a function named `name` with a docstring."""
         try:
             ns: dict[str, Any] = {}
+            # DANGER: This exec is a security hole. Don't do this at home.
             exec(code, ns)
             fn: Callable[..., Any] = ns[name]
             toolset.add_function(fn)
