@@ -1,0 +1,7 @@
+from pathlib import Path
+
+from memory.store import MemoryStore
+
+
+def get_memory_store() -> MemoryStore:
+    return MemoryStore(Path(__file__).resolve().parent.parent / "storage" / "memory.db")
