@@ -2,11 +2,12 @@ from __future__ import annotations
 from typing import Any
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import EqualsExpected
+from pydantic_ai import Agent
 
-
-def main(text: str) -> str:
-    """
-    Punctuation and Capitalization Agent
+# Create an agent using Claude model
+agent = Agent(
+    model="anthropic:claude-sonnet-4-5",
+    instructions="""Punctuation and Capitalization Agent
 
     This function should add proper punctuation and capitalization to text while
     preserving all original words exactly as they appear.
@@ -28,13 +29,26 @@ def main(text: str) -> str:
     - DO NOT split or merge words
     - DO NOT add any punctuation other than , . ?
 
-    Args:
-        text: The input text that needs punctuation and capitalization
+    PUNCTUATION RULES:
+    - End sentences with a period (.) or question mark (?) as appropriate
+    - Use a comma to separate clauses, but do not add a comma before conjunctions like "so" (e.g.,"When I went to the store, it was closed so I came back home)
+    - Use a question mark to end a direct question (e.g., "Did you go to the store?")
+    - Start a new sentence after a period or question mark with a capital letter
+    - Start a question clause with a capital letter ("Hello, world. How are you today?")
+    - Capitalize acronyms (e.g., "CIA operative said go now. Do you agree?")
 
-    Returns:
-        The text with proper punctuation and capitalization added
+    EXAMPLES:
+    Input: "hello world how are you today"
+    Output: "Hello, world. How are you today?"
+
     """
+)
+
+def main(text: str) -> str:
+    
     # TODO: Implement punctuation and capitalization agent
+    result = agent.run_sync(text)
+    return result.output.strip()
 
     raise NotImplementedError("Punctuation and capitalization agent not implemented")
 

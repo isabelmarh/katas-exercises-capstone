@@ -64,8 +64,14 @@ class KnowledgeBase:
 
         return chunks
 
+    def _redact_pii(self, text: str) -> str:
+        text = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b", "[REDACTED]", text)
+        text = re.sub(r"\+?\d[\d\s().-]{7,}\d", "[REDACTED]", text)
+        return text
+
     def ingest_transcript(self, path: Path):
         transcript = path.read_text(encoding="utf-8")
+        transcript = self._redact_pii(transcript)
         chunks = self._chunk_text(transcript)
 
         if not chunks:
@@ -114,7 +120,7 @@ def init_knowledge_base() -> KnowledgeBase:
         return _init_knowledge_base()
 
 
-agent = Agent(model="google-gla:gemini-2.5-pro")
+agent = Agent(model="anthropic:claude-sonnet-4-20250514")
 
 
 def main(input: str) -> str:

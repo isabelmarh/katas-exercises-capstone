@@ -6,7 +6,7 @@ from functools import cached_property
 from typing import Annotated, Any
 
 import yaml
-from katas.text_checker.agent import Ring, agent
+from agent import Ring, agent
 from pydantic import Field
 from pydantic_ai import Agent, PromptedOutput
 from pydantic_ai.builtin_tools import UrlContextTool
@@ -95,9 +95,8 @@ class SourceCredibilityEvals(Evaluator):
     @cached_property
     def agent(self) -> Agent[None, SourceCredibility]:
         return Agent(
-            model="google-gla:gemini-2.5-pro",
+            model="anthropic:claude-sonnet-4-5",
             output_type=PromptedOutput(SourceCredibility),
-            builtin_tools=[UrlContextTool()],
             instructions="""
             You are a research assistant. Assess the quality of the provided sources.
             """,

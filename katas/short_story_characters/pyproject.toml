@@ -4,4 +4,7 @@ version = "0.1.0"
 description = "Kata extracting characters from Short Stories"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+  "pydantic-ai",
+  "pydantic-evals>=1.0.1",
+]

@@ -33,7 +33,7 @@ Your server should expose these tools:
 - **units** (string, optional): "metric" or "imperial" (default: metric)
 
 Returns current weather conditions including:
-- Temperature
+- Temperaturecd py && mcp dev server.py
 - Conditions (sunny, cloudy, rainy, etc.)
 - Humidity
 - Wind speed

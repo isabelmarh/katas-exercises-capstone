@@ -3,7 +3,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import get_args, Any, Callable
 
-from pydantic_ai.models.google import LatestGoogleModelNames
+from pydantic_ai.models.anthropic import LatestAnthropicModelNames
 from pydantic_ai import Agent, FunctionToolset, RunContext
 
 TOOLS_DIR = Path(__file__).parent / "tools"
@@ -106,7 +106,7 @@ def make_toolset(ctx: RunContext) -> FunctionToolset:
 
 
 agent = Agent(
-    model="google-gla:gemini-2.5-pro",
+    model="anthropic:claude-sonnet-4-5",
     instructions=(
         "You have read_file, write_file, edit_file, bash, search_tools, and create_tool. "
         "Always search_tools first — top 3 matches are auto-loaded and ready to call. "
@@ -115,5 +115,5 @@ agent = Agent(
     ),
     toolsets=[make_toolset],
 )
-models = list(get_args(LatestGoogleModelNames))
+models = [f"anthropic:{m}" for m in get_args(LatestAnthropicModelNames)]
 app = agent.to_web(models=models)

@@ -2,38 +2,51 @@ from __future__ import annotations
 from typing import Any
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import EqualsExpected
+from pydantic_ai import Agent
+
+agent = Agent(
+    model="anthropic:claude-sonnet-4-5",
+    instructions="""You are a Data Glossary Audit Agent that evaluates data glossary definitions against strict quality criteria.
+
+CRITICAL: Your response must be EXACTLY one word: "pass" or "fail". No explanations, no other text.
+
+A definition PASSES only if it meets ALL of these criteria:
+1. Singular form - uses singular nouns, not plural forms
+2. Positive definition - states what it IS, not what it is NOT
+3. Descriptive phrase or sentence - more than just a single word or bare term (must have at least a phrase with context)
+4. Common abbreviations only - uses widely recognized abbreviations like "API", "HTTP", "HTTP/2", "TCP/IP", "USA", "CEO". Exclude obscure or specialized jargon acronyms. Technical definitions that properly use common abbreviations can pass this criterion.
+5. No embedded definitions - doesn't parenthetically or explicitly define other concepts within the same definition
+6. States essential meaning - captures the core concept or purpose (for technical terms, describing key technical attributes counts)
+7. Precise and unambiguous - clear and specific language, not vague or unclear
+8. Concise - appropriately brief without being excessively long or verbose
+9. Able to stand alone - doesn't reference "above", "below", "as mentioned", or require external context
+10. No procedural information - doesn't describe steps or creation processes; technical descriptions of what something IS or uses are acceptable
+11. No circular reasoning - doesn't define something in terms of itself
+12. Consistent terminology - uses standard terms consistently
+13. Appropriate definition type - describes the concept itself, not example values or amounts
+
+A definition FAILS if it violates ANY of the 13 criteria above.
+
+Remember: Output must be exactly one word - either "pass" or "fail". Nothing else.
+"""
+)
 
 
 def main(inputs: str) -> str:
     """
-    Data Glossary Audit Agent
+    Evaluate a data glossary definition against quality criteria.
 
-    This function should analyze data glossary definitions against quality criteria
-    and return "pass" or "fail" based on whether the definition meets the standards.
-
-    The quality criteria to evaluate include:
-    - Singular form (not plural)
-    - Positive definition (states what it IS, not what it's NOT)
-    - Descriptive phrase or sentence (not just a single word)
-    - Common abbreviations only
-    - No embedded definitions of other concepts
-    - States essential meaning
-    - Precise and unambiguous
-    - Concise
-    - Able to stand alone
-    - No procedural information
-    - No circular reasoning
-    - Consistent terminology
-    - Appropriate definition type (not example values)
+    This function analyzes the provided definition to ensure it meets all
+    quality standards for data glossary entries and returns a pass/fail result.
 
     Args:
         inputs: The definition text to evaluate
 
     Returns:
-        "pass" if the definition meets quality standards, "fail" otherwise
+        "pass" if the definition meets all quality standards, "fail" otherwise
     """
-    # TODO: Implement data glossary quality evaluation agent
-    raise NotImplementedError("Data glossary quality evaluation agent not implemented")
+    result = agent.run_sync(inputs)
+    return result.output.strip()
 
 
 # Evaluation dataset

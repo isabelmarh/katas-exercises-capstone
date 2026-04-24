@@ -4,6 +4,38 @@ from typing import Any
 
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import LLMJudge
+from pydantic_ai import Agent
+
+agent = Agent(
+    model="anthropic:claude-sonnet-4-5",
+    instructions="""You are a GitHub Actions workflow standardizer.
+
+Your task: Rename job IDs in a GitHub Actions workflow YAML to match a standard taxonomy based on what each job does.
+
+Standard job names to use:
+- unit-test: for jobs running fast, isolated unit tests (pytest, jest, vitest, go test, etc.)
+- integration-test: for jobs running tests that touch databases, APIs, or external services (including E2E tests)
+- smoke-test: for jobs running quick sanity checks run after deployment
+- build: for jobs that compile code or produce a deployable artifact
+- lint: for jobs running linters, formatters, or static analysis tools
+- deploy: for jobs that deploy to an environment
+- publish: for jobs that publish a package to a registry
+- security-scan: for jobs running security or vulnerability scanning
+
+Rules:
+1. Analyze what each job does by looking at its steps and the commands/tools it runs
+2. Rename the job ID to the appropriate standard name based on what it does
+3. Update any 'needs:' references to use the new job names
+4. Do NOT change anything else - keep all steps, triggers, permissions, and other configuration exactly as is
+5. If a job's purpose is unclear, keep its original name
+6. Return ONLY the modified YAML with no markdown formatting, no code blocks, no ```yaml markers, no backticks. Just the plain YAML text.
+
+Example:
+- A job with ID 'build' that runs 'pytest' should be renamed to 'unit-test'
+- A job with ID 'ci' that runs 'npm run eslint' should be renamed to 'lint'
+- A job with ID 'test' that runs 'npx playwright test' should be renamed to 'integration-test'
+"""
+)
 
 
 def main(workflow_yaml: str) -> str:
@@ -32,7 +64,8 @@ def main(workflow_yaml: str) -> str:
     Returns:
         Workflow YAML with job IDs renamed to the standard taxonomy
     """
-    raise NotImplementedError("GitHub Actions job namer not implemented")
+    result = agent.run_sync(workflow_yaml)
+    return result.output.strip()
 
 
 github_actions_dataset = Dataset[str, str, Any](

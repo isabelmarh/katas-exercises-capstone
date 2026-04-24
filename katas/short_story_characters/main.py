@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from difflib import SequenceMatcher
 from pathlib import Path
-from typing import Callable, Any
+from typing import Callable, Any, Literal
 
 from pydantic import BaseModel, Field, TypeAdapter
 from pydantic_ai import Agent
@@ -10,14 +11,30 @@ from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext, EvaluatorOutput
 from pydantic_evals.evaluators.evaluator import EvaluationScalar, EvaluationReason
 from pydantic_evals.reporting import RenderValueConfig
+from pydantic_evals.evaluators import LLMJudge
 
 #######################################################################################################################
 ## Agent
 #######################################################################################################################
 
+# Predefined list of allowed professions
+ALLOWED_PROFESSIONS = Literal[
+    "Paper-box factory worker",
+    "Member of the Give and Take Association",
+    "Housewife",
+    "Detective",
+    "Grocer",
+    "Member of Give and Take Athletic Association",
+]
+
 
 class Character(BaseModel):
     first_name: str = Field(description="The character's first name", min_length=3)
+    last_name: str = Field(description="The character's last name", min_length=3)
+    profession: ALLOWED_PROFESSIONS = Field(description="The character's profession (must be from predefined list)")
+    description: str = Field(
+        description="A brief description of the character, including key traits and role in the story",
+        min_length=20,)
     # TODO:
     # Add more fields e.g., last_name, profession, character, description, etc.
     # consider adding validation rules to see how the agent reacts to them
@@ -25,9 +42,35 @@ class Character(BaseModel):
 
 
 agent = Agent(
-    model="google-gla:gemini-2.5-pro",
+    model="anthropic:claude-sonnet-4-5",
     output_type=list[Character],
-    instructions="""extract main characters""",
+    instructions="""You are an expert literary analyst specializing in character extraction from short stories.
+
+Your task is to identify and extract ALL main characters from the provided short story text. For each main character, extract the following information:
+
+1. **First Name**: The character's given name (minimum 3 characters)
+2. **Last Name**: The character's family name (minimum 3 characters, if mentioned)
+3. **Profession**: The character's occupation or role in society. MUST be one of these predefined professions:
+   - Paper-box factory worker
+   - Member of the Give and Take Association
+   - Member of Give and Take Athletic Association
+   - Housewife
+   - Detective
+   - Grocer
+4. **Description**: A detailed summary (minimum 20 characters) that captures the character's key traits, personality, motivations, and their role/significance in the story
+
+Validation Rules:
+- Description must be at least 20 characters long
+- Profession must match exactly one of the predefined professions listed above
+- First and last names must be at least 3 characters each
+
+Guidelines:
+- Focus on central characters who drive the narrative forward or represent key themes
+- Include supporting characters who play important roles in major plot events
+- For each character, ensure the description captures both personality traits and their narrative significance
+- Be thorough but avoid listing every minor character mentioned in passing
+- If information is not explicitly stated, infer from the character's actions and dialogue
+- When mapping character professions to the predefined list, find the closest match""",
 )
 
 #######################################################################################################################
@@ -41,6 +84,50 @@ class ContainsCharacter(Evaluator[str, list[Character]]):
     last_name: str | None
     profession: str | None
     description: str | None
+
+    def _fuzzy_match(self, expected: str, actual: str, threshold: float = 0.8) -> bool:
+        """Check if two strings match with fuzzy matching above threshold."""
+        ratio = SequenceMatcher(None, expected.lower(), actual.lower()).ratio()
+        return ratio >= threshold
+
+    def _extract_key_phrases(self, text: str) -> set[str]:
+        """Extract important words (>3 chars) as key phrases for matching."""
+        # Split into words and filter out short words and common words
+        words = text.lower().split()
+        key_phrases = {
+            word.strip(',.!?;:').lower() 
+            for word in words 
+            if len(word.strip(',.!?;:')) > 3
+        }
+        return key_phrases
+
+    def _check_key_phrases_match(self, expected: str, actual: str, min_match_ratio: float = 0.5, phrase_similarity_threshold: float = 0.75) -> bool:
+        """Check if at least min_match_ratio of key phrases from expected appear in actual.
+        
+        Uses fuzzy matching to handle variations (e.g., "escort" matches "escorting").
+        """
+        expected_phrases = self._extract_key_phrases(expected)
+        actual_phrases = self._extract_key_phrases(actual)
+        
+        if not expected_phrases:
+            return True
+        
+        # Check how many expected phrases find a match in actual phrases
+        matches = 0
+        for expected_phrase in expected_phrases:
+            # Try exact match first
+            if expected_phrase in actual_phrases:
+                matches += 1
+            else:
+                # Try fuzzy match with actual phrases
+                for actual_phrase in actual_phrases:
+                    similarity = SequenceMatcher(None, expected_phrase, actual_phrase).ratio()
+                    if similarity >= phrase_similarity_threshold:
+                        matches += 1
+                        break
+        
+        match_ratio = matches / len(expected_phrases)
+        return match_ratio >= min_match_ratio
 
     def evaluate(self, ctx: EvaluatorContext[str, list[Character]]) -> EvaluatorOutput:
         reasons: dict[str, EvaluationScalar | EvaluationReason] = {}
@@ -58,15 +145,26 @@ class ContainsCharacter(Evaluator[str, list[Character]]):
 
         reasons["first_name"] = True
 
-        ## TODO:
-        ## Add more detailed checks for last name, profession, description, etc.
-        ## Exact match might be too strict, consider using fuzzy matching
-        ## or checking for key phrases in the description instead of an exact match.
-        ## Consider changing the input to the evaluation to include this
-        reasons["last_name"] = False
-        reasons["profession"] = False
-        reasons["description"] = False
+        ## check last name
+        if self.last_name is not None:
+            reasons["last_name"] = character.last_name == self.last_name
+        else:
+            reasons["last_name"] = True
 
+        ## check profession using fuzzy matching
+        if self.profession is not None:
+            reasons["profession"] = self._fuzzy_match(self.profession, character.profession)
+        else:
+            reasons["profession"] = True
+            
+        ## check description using key phrase matching
+        if self.description is not None and self.description != "...":
+            # Match if at least 50% of key phrases from expected appear in actual
+            match = self._check_key_phrases_match(self.description, character.description, min_match_ratio=0.4)
+            reasons["description"] = match
+        else:
+            reasons["description"] = True
+    
         return self._prefix_reasons_with_evaluator_name(reasons)
 
     def _prefix_reasons_with_evaluator_name(

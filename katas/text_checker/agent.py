@@ -18,15 +18,36 @@ class Claim(BaseModel):
 
 
 class Assessment(BaseModel):
-    ring: str
-    # ring: Ring = Field(description="...") # TODO: Give the agent more info on what to expect
-    # claims: list[Claim] # TODO: Enable this on the second step
+    ring: Ring = Field(
+        description="The Technology Radar ring classification. "
+        "'Adopt' = strong recommendation, proven and mature. "
+        "'Trial' = worth pursuing, teams should try on low-risk projects. "
+        "'Assess' = worth exploring to understand impact. "
+        "'Hold' = proceed with caution, not recommended for new projects."
+    )
+    claims: list[Claim] = Field(
+        description="Objective factual claims extracted from the text, with verification."
+    )
 
 
 agent: Agent = Agent(
-    model="google-gla:gemini-2.5-pro",
-    # output_type=Assessment, # TODO: Enable this to change the output type
-    instructions="...",  # TODO: Tell the agent what todo
+    model="anthropic:claude-sonnet-4-5",
+    output_type=Assessment,
+    instructions="""You are a Thoughtworks Technology Radar analyst. Given a blip description, you must:
+
+1. CLASSIFY the blip into a Ring: Adopt, Trial, Assess, or Hold.
+   - Adopt: Strong recommendation, proven at scale, sensible default
+   - Trial: Worth pursuing, teams should try it on low-risk projects
+   - Assess: Worth exploring to understand how it will affect your organization
+   - Hold: Proceed with caution, not recommended for new adoption
+   Look for signal words: "we recommend", "sensible default" → Adopt; "worth pursuing", "we've seen success" → Trial; "worth exploring", "keep an eye on" → Assess; "proceed with caution", "concerns" → Hold.
+
+2. EXTRACT at least 3 objective factual claims from the text.
+   - Focus on verifiable statements, not opinions
+   - For each claim, rate it as TRUE, FALSE, MISLEADING, or UNVERIFIABLE
+   - Provide a brief explanation of your verification
+   - Include at least one credible source URL for each claim (use real, well-known URLs like official docs, Wikipedia, or reputable tech publications)
+""",
 )
 
 
