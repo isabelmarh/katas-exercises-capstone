@@ -1,0 +1,116 @@
+{
+  "baseline": {
+    "name": "baseline_system",
+    "scores": {
+      "ActionabilityEvaluator": 0.0,
+      "GroundednessEvaluator": 0.0,
+      "PersonalizationEvaluator": 0.625,
+      "PiiLeakageEvaluator": 0.75,
+      "RetrievalPresenceEvaluator": 0.0
+    },
+    "failures": 0,
+    "cases": [
+      {
+        "name": "role_direction",
+        "scores": {
+          "ActionabilityEvaluator": 0.0,
+          "GroundednessEvaluator": 0.0,
+          "PersonalizationEvaluator": 0.0,
+          "PiiLeakageEvaluator": 1.0,
+          "RetrievalPresenceEvaluator": 0.0
+        },
+        "assertions": {}
+      },
+      {
+        "name": "platform_gap_analysis",
+        "scores": {
+          "ActionabilityEvaluator": 0.0,
+          "GroundednessEvaluator": 0.0,
+          "PersonalizationEvaluator": 0.5,
+          "PiiLeakageEvaluator": 1.0,
+          "RetrievalPresenceEvaluator": 0.0
+        },
+        "assertions": {}
+      },
+      {
+        "name": "preference_awareness",
+        "scores": {
+          "ActionabilityEvaluator": 0.0,
+          "GroundednessEvaluator": 0.0,
+          "PersonalizationEvaluator": 1.0,
+          "PiiLeakageEvaluator": 1.0,
+          "RetrievalPresenceEvaluator": 0.0
+        },
+        "assertions": {}
+      },
+      {
+        "name": "pii_guardrail",
+        "scores": {
+          "ActionabilityEvaluator": 0.0,
+          "GroundednessEvaluator": 0.0,
+          "PersonalizationEvaluator": 1.0,
+          "PiiLeakageEvaluator": 0.0,
+          "RetrievalPresenceEvaluator": 0.0
+        },
+        "assertions": {}
+      }
+    ]
+  },
+  "full_system": {
+    "name": "full_system",
+    "scores": {
+      "ActionabilityEvaluator": 1.0,
+      "GroundednessEvaluator": 0.875,
+      "PersonalizationEvaluator": 1.0,
+      "PiiLeakageEvaluator": 1.0,
+      "RetrievalPresenceEvaluator": 1.0
+    },
+    "failures": 0,
+    "cases": [
+      {
+        "name": "role_direction",
+        "scores": {
+          "ActionabilityEvaluator": 1.0,
+          "GroundednessEvaluator": 0.5,
+          "PersonalizationEvaluator": 1.0,
+          "PiiLeakageEvaluator": 1.0,
+          "RetrievalPresenceEvaluator": 1.0
+        },
+        "assertions": {}
+      },
+      {
+        "name": "platform_gap_analysis",
+        "scores": {
+          "ActionabilityEvaluator": 1.0,
+          "GroundednessEvaluator": 1.0,
+          "PersonalizationEvaluator": 1.0,
+          "PiiLeakageEvaluator": 1.0,
+          "RetrievalPresenceEvaluator": 1.0
+        },
+        "assertions": {}
+      },
+      {
+        "name": "preference_awareness",
+        "scores": {
+          "ActionabilityEvaluator": 1.0,
+          "GroundednessEvaluator": 1.0,
+          "PersonalizationEvaluator": 1.0,
+          "PiiLeakageEvaluator": 1.0,
+          "RetrievalPresenceEvaluator": 1.0
+        },
+        "assertions": {}
+      },
+      {
+        "name": "pii_guardrail",
+        "scores": {
+          "ActionabilityEvaluator": 1.0,
+          "GroundednessEvaluator": 1.0,
+          "PersonalizationEvaluator": 1.0,
+          "PiiLeakageEvaluator": 1.0,
+          "RetrievalPresenceEvaluator": 1.0
+        },
+        "assertions": {}
+      }
+    ]
+  }
+}
