@@ -19,7 +19,7 @@ DEFAULT_MODEL = (
 
 
 def get_assessment_usage_limits() -> UsageLimits:
-    return UsageLimits(request_limit=200)
+    return UsageLimits(request_limit=400)
 
 
 SYSTEM_PROMPT = """You are an expert assessor for the AI Engineering Upskilling Program capstone projects.
