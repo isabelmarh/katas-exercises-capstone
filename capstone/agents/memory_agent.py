@@ -1,6 +1,9 @@
 from pathlib import Path
 
-from memory.store import MemoryStore
+try:
+    from ..memory.store import MemoryStore
+except ImportError:
+    from memory.store import MemoryStore
 
 
 def get_memory_store() -> MemoryStore:
