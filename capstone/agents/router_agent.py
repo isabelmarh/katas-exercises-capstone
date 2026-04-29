@@ -1,4 +1,11 @@
+from __future__ import annotations
+
+import json
+
 from pydantic import BaseModel
+from pydantic_ai import Agent
+
+from .model_factory import build_model, offline_text_response
 
 
 class QueryRoute(BaseModel):
@@ -7,11 +14,26 @@ class QueryRoute(BaseModel):
     reasoning: str
 
 
+router_agent = Agent(
+    build_model("router"),
+    output_type=str,
+    instructions=(
+        "Classify the user's career query. Return minified JSON with keys route, confidence, reasoning. "
+        "Allowed routes: retrieval, memory, direct, planning."
+    ),
+    defer_model_check=True,
+)
+
+
 def route_query(query: str) -> QueryRoute:
-    """Temporary deterministic router stub for early development."""
-    lowered = query.lower()
-    if "remember" in lowered or "preference" in lowered:
-        return QueryRoute(route="memory", confidence=0.7, reasoning="memory keyword")
-    if "why" in lowered or "what role" in lowered or "skills" in lowered:
-        return QueryRoute(route="retrieval", confidence=0.8, reasoning="career query")
-    return QueryRoute(route="direct", confidence=0.5, reasoning="default route")
+    try:
+        result = router_agent.run_sync(query)
+        raw_output = result.output
+    except Exception:
+        raw_output = offline_text_response("router", query)
+
+    try:
+        parsed = json.loads(raw_output)
+        return QueryRoute.model_validate(parsed)
+    except Exception:
+        return QueryRoute(route="direct", confidence=0.5, reasoning="fallback parsing path")
