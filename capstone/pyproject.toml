@@ -3,7 +3,13 @@ name = "career-compass-capstone"
 version = "0.1.0"
 description = "Career second brain capstone built with Pydantic AI, RAG, memory, and evals."
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+  "mcp[cli]>=1.19.0",
+  "pydantic-ai",
+  "pydantic-evals",
+  "opentelemetry-api",
+  "opentelemetry-sdk",
+]
 
 [tool.uv]
 package = false
